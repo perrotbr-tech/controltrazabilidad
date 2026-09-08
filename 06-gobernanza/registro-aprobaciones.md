@@ -34,7 +34,7 @@
 - **V-07** ¿La empresa de transporte del Enjoy tiene inscripción TTEPRIV vigente y por qué vehículos? (dato del cliente)
 - **V-08** ¿Quién es responsable y quién encargado del tratamiento de datos? (decisión contractual con el Enjoy)
 - **V-09** Norma sectorial hotelera/casino sobre traslado de personal en turnos nocturnos — no investigada.
-- **V-10** Alcance real del "cumplimiento contractual" de AllRide: ¿cubre conciliación económica? (demo o ficha técnica) — **decide el diferenciador**.
+- **V-10** Alcance real del "cumplimiento contractual" de AllRide — **parcialmente cerrado 2026-09-08 (S2b, H-016…H-019)**: declara conciliación factura–servicio ejecutado y estados de pago; no se halló fijo separado de extras, causal, autorización distinta de evidencia ni cierre reproducible. Falta: PDF fechado de las páginas (sin aprobación) y demo con preguntas cerradas (**requiere autorización de Eduardo para el contacto comercial**).
 - **V-11** API/exportación disponible en las plataformas candidatas.
 - **V-12** Precio y modelo de licencia (no publicado; solicitar).
 - **V-13** Ahorro medible hoy en el Enjoy: horas de coordinación, extras discutidos, tiempo de conciliación (entrevista).

@@ -24,11 +24,18 @@ DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC
 - Manual rector ahora rige literalmente: formato de entrega entre funciones (sección 15), política de detención (sección 11) y plantilla de SPEC (sección 09). SPEC-001 deberá completarse con la plantilla completa antes de "En revisión".
 - La carpeta local `C:\Users\perro\OneDrive\Desktop\Proyecto Enjoy` no es accesible desde la sesión remota; la entrega es la rama Git más la carpeta empaquetada (zip) enviada al dueño.
 
+## Respuestas del dueño (2026-09-08, tarde)
+- Contraprueba manual de SPEC-002: **OK** → SPEC-002 Verificada; `app/index.html` es la copia de trabajo vigente.
+- DEC-006: el conductor lo controla el contratista; no es usuario de la plataforma (SPEC-001 D5 resuelta).
+- DEC-007: V-10 autorizado → S2b ejecutado: **parcialmente cerrado** (H-016…H-021). AllRide declara conciliación de lo ejecutado; no se halló fijo/extras con causal, autorización y cierre reproducible. Diferenciador estrechado, no refutado.
+- Rama: sin pull request; el remoto no tiene rama principal, esta rama es el tronco.
+- Dato nuevo **V-16**: "24 viajes, 4 vans, cerca de 15 pasajeros" contradice la configuración del prototipo (4 cupos/van, 16 salidas). SPEC-003 en borrador con preguntas Q1–Q5; **el prototipo no se toca hasta precisar**.
+
 ## Prioridad de arranque (próxima sesión)
-1. Contraprueba manual en navegador de `app/index.html` con los cuatro perfiles (R5 de SPEC-002) — requiere que Eduardo o el Supervisor abra el archivo.
-2. Decisiones D1–D6 de SPEC-001 con Eduardo (T-03); sin ellas no se construye el registro de trabajadores.
-3. `investigador`: cerrar V-10 y recuperar URLs primarias de H-001/H-002/H-003 (T-02).
-4. SPEC-003 candidata: clasificación mensual por prefijo UTC frente al invariante America/Santiago; `reset` de demo sin permiso (QA D-3).
+1. Respuestas de Eduardo a Q1–Q5 de SPEC-003 (capacidad real y viajes) → implementar SPEC-003 en `app/` con constructor y revisor-qa.
+2. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
+3. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.
+4. T-10 huso horario y `reset` de demo; T-02 URLs primarias H-001/H-002/H-003.
 5. ADR-001 con opciones y costos concretos antes de cualquier backend (T-04).
 
 ## Estado técnico
