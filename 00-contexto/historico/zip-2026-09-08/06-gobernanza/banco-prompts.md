@@ -55,14 +55,5 @@ Registro de los prompts que produjeron cada etapa. Sirven para reproducir, audit
 
 ---
 
-## PR-07 · Arranque en Claude Code (reconstrucción del paquete portable)
-**Fecha:** 2026-09-08 · **Etapa:** primera sesión en Claude Code · **Archivo fuente:** `Enjoy_Claude_spec.md` (paquete portable con 34 archivos)
-**Texto del dueño:** "crea el proyecto, como agente IA supervisado. siguen indicaciones. debemos antes de cualquier acción leer, luego aplicar método specdrive. adjunte la carpeta. comenta si necesitas algo más."
-**Resultado:** lectura íntegra del paquete; reconstrucción de los 34 archivos en el repositorio `perrotbr-tech/controltrazabilidad` (rama `claude/proyecto-agente-ia-lazwio`) sin colisiones; baseline verificado; T-01 auditado con SPEC-002 y prueba reproducible; SPEC-001 con decisiones pendientes listadas; sesión registrada en ESTADO-ACTUAL y registro de aprobaciones. No se emitió ninguna DEC nueva.
-**Salvedad:** el manual Word `Sistema_Agentico_Mineria_SpecDriven.docx` y el ZIP original no venían en el paquete; se trabajó con su resumen operativo en el traspaso histórico.
-**Segundo envío (misma sesión):** el dueño adjuntó el ZIP (`files_ProyectoEnjoy_09.26.zip`), el manual Word y la ruta local `C:\Users\perro\OneDrive\Desktop\Proyecto Enjoy`. Resultado: manual incorporado en `06-gobernanza/` (original + extracción Markdown); creados `00-contexto/vision-y-alcance.md`, `04-especificaciones/PLANTILLA-SPEC.md` y `06-gobernanza/compuertas.md` desde el manual; ZIP conservado en `00-contexto/historico/zip-2026-09-08/` (es el snapshot previo a DEC-004, nada más nuevo que el repo). La escritura en la ruta local de Windows no es posible desde la sesión remota: se entrega la carpeta empaquetada.
-
----
-
 ## Convención para nuevos prompts
 `PR-## · título · fecha · etapa · resultado · texto o archivo`. Los prompts que cambian alcance, dinero, acceso o datos personales se vinculan además a la decisión DEC-### del registro de aprobaciones.

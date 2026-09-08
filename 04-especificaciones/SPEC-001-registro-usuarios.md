@@ -1,5 +1,6 @@
 # SPEC-001 — Registro y vínculo entre actores
-Estado: propuesta para revisar en Claude Code. No aprobación de backend.
+Estado (PLANTILLA-SPEC): Borrador. Propietario humano: Eduardo Perrot. No aprobación de backend.
+Al pasar a "En revisión" debe completarse con la plantilla completa (`PLANTILLA-SPEC.md`): es una ampliación, no una corrección.
 Origen: PR-05, DEC-003/005. Piloto: Enjoy.
 ## Problema
 Hoy el login permite seleccionar identidades ficticias. Falta alta del trabajador vinculada al contrato y consulta de su solicitud por el operador y mandante autorizados.

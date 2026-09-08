@@ -1,5 +1,6 @@
 # SPEC-002 — Permisos en todas las mutaciones del prototipo
-Estado: defecto especificado; corrección autorizada bajo DEC-005 (corrección del MVP, no ampliación).
+Estado (PLANTILLA-SPEC): Verificada en `app/` con DOM simulado; contraprueba manual pendiente. Propietario humano: Eduardo Perrot.
+Corrección autorizada bajo DEC-005 (corrección del MVP, no ampliación); SPEC breve según nota operativa de la plantilla. Aprobaciones (sección 12): Técnico = revisor-qa sin bloqueantes; Producto/Operación/Contrato/Seguridad = no requeridas para una corrección de defecto sin cambio de alcance, según CLAUDE.md.
 Origen: T-01 auditoría de baseline · 00-contexto/inventario-mvp-actual.md ("requirePermission no cubre por sí solo contrato y recurso en todas las mutaciones") · invariante CLAUDE.md "ocultar pestañas no protege datos" · HIP-01/HIP-04.
 
 ## Problema
