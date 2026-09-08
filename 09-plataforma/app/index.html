@@ -601,7 +601,9 @@ function marcaEv(id,c,v){const e=S.extras.find(x=>x.id===id);if(!requirePermissi
 function setPax(id,v){const e=S.extras.find(x=>x.id===id);if(!requirePermission('registrar:evidencia'))return;const a=e.pasajerosExtra;e.pasajerosExtra=Math.max(0,+v||0);audita('Extra #'+id+' pasajeros='+e.pasajerosExtra,'',''+a);guardar();render();}
 function cambia(id,est,m){if(!requirePermission('operar:extra')){alert('No autorizado.');return;}const e=S.extras.find(x=>x.id===id);const r=transicion(e,est,m);if(!r.ok)alert(r.error);render();}
 function subsana(id){if(!requirePermission('registrar:evidencia')){alert('No autorizado.');return;}const e=S.extras.find(x=>x.id===id);if(!respaldado(e)){alert('Faltan condiciones de respaldo.');return;}
-  e.subsanado='Evidencia completada el '+fecha(AHORA.toISOString());const r=transicion(e,'Conciliado','Observación subsanada','registrar:evidencia');if(!r.ok)alert(r.error);render();}
+  const r=transicion(e,'Conciliado','Observación subsanada','registrar:evidencia');   // SPEC-002 R1 (QA D-1): sellar solo si la transición fue aceptada
+  if(!r.ok){alert(r.error);render();return;}
+  e.subsanado='Evidencia completada el '+fecha(AHORA.toISOString());guardar();render();}
 
 /* ---------- MANDANTE ---------- */
 const ADV=`<div class="advertencia"><b>Nota contractual</b>Los indicadores de costo por usuario y ocupación miden eficiencia operacional. No modifican el monto contractual salvo que el contrato establezca expresamente un ajuste.</div>`;
@@ -742,7 +744,9 @@ function excluye(id){if(!requirePermission('conciliar:periodo')){alert('No autor
 function excluyeOk(id){if(!requirePermission('conciliar:periodo')){alert('No autorizado.');return;}
   const m=document.getElementById('mExc').value.trim();if(!m){alert('El motivo es obligatorio.');return;}
   const e=S.extras.find(x=>x.id===id);e.excluido=true;e.motivoExclusion=m;
-  const r=transicion(e,'Conciliado','Excluido del pago: '+m);if(!r.ok){alert(r.error);return;}cierraModal();render();}
+  const r=transicion(e,'Conciliado','Excluido del pago: '+m);
+  if(!r.ok){e.excluido=false;delete e.motivoExclusion;alert(r.error);return;}   // SPEC-002 R1 (QA D-2): sin mutación parcial si la transición falla
+  cierraModal();render();}
 function vConciliacion(){
   if(!requirePermission('conciliar:periodo')) return vDenegado();
   const X=extrasResumen(); const P=periodo(); const cerrada=S.conciliaciones.find(c=>c.mes===MES);

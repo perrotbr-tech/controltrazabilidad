@@ -118,6 +118,40 @@ caso('AC-15', 'Todo intento rechazado quedó en auditoría como ACCESO DENEGADO'
   return S().auditoria.filter(a => a.denegado).length >= 8;
 });
 
+// ---- Casos añadidos tras la revisión QA (D-1, D-2, caminos positivos R2 y R4) ----
+caso('AC-16', 'CONTRATISTA: subsana() sobre un Utilizado respaldado no concilia ni deja sello de subsanación (R1)', () => {
+  const e = extra(1); const antes = e.estado; ctx.subsana(1); return e.estado === antes && e.subsanado == null;
+});
+app.login(3);
+caso('AC-17', 'MANDANTE: excluyeOk() sobre un Rechazado no deja bandera excluido (R1)', () => {
+  const e = extra(3); ctx.excluyeOk(3); return !e.excluido && e.motivoExclusion == null && e.estado === 'Rechazado';
+});
+caso('AC-18', 'Subsanación legítima: mandante valida emergencia, contratista completa evidencia y subsana un Observado (R2 positivo)', () => {
+  const e = extra(2);
+  ctx.validaEmergencia(2);
+  app.login(2);
+  ctx.marcaEv(2, 'salida', true); ctx.marcaEv(2, 'manifiesto', true);
+  const resp = app.respaldado(e);
+  ctx.subsana(2);
+  return resp && e.estado === 'Conciliado' && typeof e.subsanado === 'string';
+});
+caso('AC-19', 'TRABAJADOR y sin sesión: cierraPeriodo() no crea conciliación (R4 sin permiso)', () => {
+  const n = S().conciliaciones.length;
+  app.login(1); ctx.cierraPeriodo();
+  app.logout(); ctx.cierraPeriodo();
+  return S().conciliaciones.length === n;
+});
+caso('AC-20', 'MANDANTE sin observados pendientes: cierraPeriodo() emite conciliación con correlativo (R4 positivo)', () => {
+  app.login(3);
+  const n = S().conciliaciones.length;
+  ctx.cierraPeriodo();
+  const c = S().conciliaciones[S().conciliaciones.length - 1];
+  return S().conciliaciones.length === n + 1 && /^CT-2026-\d{2}$/.test(c.correlativo) && c.total === S().contrato.montoFijo + c.respaldado;
+});
+caso('AC-21', 'Estado destino inválido: transicion() devuelve ok:false sin mutar', () => {
+  const e = extra(1); const antes = e.estado; const r = app.transicion(e, 'Solicitado', 'x'); return r.ok === false && e.estado === antes;
+});
+
 const fallas = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'PASS ' : 'FAIL ') + r.id + ' — ' + r.descripcion + (r.err ? ' [' + r.err + ']' : ''));
 console.log(`\nArchivo: ${path.relative(process.cwd(), archivo)} · ${resultados.length - fallas.length}/${resultados.length} casos correctos.`);

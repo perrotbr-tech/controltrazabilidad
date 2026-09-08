@@ -51,6 +51,12 @@ AC-15: cada intento rechazado queda en auditoría como ACCESO DENEGADO.
 - T-01c Revisión independiente del diff — revisor-qa.
 - T-01d Registrar resultado en `08-validacion/` y estado.
 
+## Resultado (2026-09-08)
+- T-01a/b/c/d ejecutadas. `check-permisos.cjs`: 21/21 en `app/`, 7/21 en baseline. `check-baseline.cjs`: PASS. Baseline sin cambios.
+- Revisión `revisor-qa`: sin defectos bloqueantes. D-1 (`subsana` sellaba antes de la transición) y D-2 (`excluyeOk` marcaba `excluido` antes de validar) corregidos por el Supervisor y cubiertos por AC-16 y AC-17; AC-18…AC-21 añadidos a propuesta del revisor (caminos positivos R2/R4, estado inválido).
+- Registrado sin corregir: D-3 `window.app.reset` sin permiso borra la auditoría (utilería de demo; decidir si se condiciona a `DEMO`); D-4 la excepción de `transicion` depende de un argumento del llamador, no del rol (robustez, no escalada); D-5 un estado destino desconocido audita "Permiso undefined" (fail-closed, mensaje pobre).
+- Pendiente: contraprueba manual en navegador con los cuatro perfiles (R5).
+
 ## Fuera de alcance (registrado, no corregido aquí)
 - Clasificación mensual por prefijo UTC (`s.salida.startsWith(MES)`) frente al invariante America/Santiago: requiere SPEC propia (candidata SPEC-003).
 - Validación de habilitación del vehículo (H-002/H-011) y versionado de la clave `trazabilidad_v2`: T-08 y SPEC posteriores.

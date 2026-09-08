@@ -11,7 +11,9 @@ Entorno: contenedor remoto Linux, Node v22.22.2, TZ America/Santiago, sin paquet
 | Comando | Archivo | Resultado |
 |---|---|---|
 | `node scripts/check-baseline.cjs` | prototipo-actual/index.html (reconstruido, sha256 7e710bef…) | PASS |
-| `node scripts/check-permisos.cjs 09-plataforma/prototipo-actual/index.html` | baseline | FAIL 12/15 (AC-06, AC-11, AC-12 pasan por efecto cascada del propio defecto) — reproducción de SPEC-002 |
-| `node scripts/check-permisos.cjs` | app/index.html (SPEC-002 aplicada) | PASS 15/15, exit 0 |
+| `node scripts/check-permisos.cjs 09-plataforma/prototipo-actual/index.html` | baseline | FAIL, 7/21 correctos (los que pasan lo hacen por efecto cascada del propio defecto) — reproducción de SPEC-002, exit 1 |
+| `node scripts/check-permisos.cjs` | app/index.html (SPEC-002 aplicada, incl. correcciones QA D-1/D-2) | PASS 21/21, exit 0 |
+
+Nota: `check-baseline.cjs` lee solo el baseline; su PASS no dice nada sobre `app/` (observación del revisor-qa).
 
 Alcance: JavaScript con DOM simulado. No acredita interfaz en navegador, E2E, autenticación real ni seguridad de servidor. Contraprueba manual de los cuatro perfiles en navegador: pendiente (R5 de SPEC-002).
