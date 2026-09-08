@@ -32,7 +32,9 @@ Ninguna de estas decisiones se toma aquí; corresponden a Eduardo (T-03). Cada u
 | D2 | Quién aprueba el alta del trabajador (REQ-002) | Define el flujo pendiente→activo y quién responde por la nómina (H-005, art. 183-C) | Supervisor del mandante aprueba; contratista solo consulta |
 | D3 | Método de verificación de identidad (REQ-002) | Distingue demostración de piloto real | Piloto: correo corporativo del mandante con enlace de un solo uso; sin biometría |
 | D4 | Política de retención y baja (REQ-004, H-001) | Ley 21.719 exige base de licitud y plazo definido antes del 01-12-2026 | Conservar reservas del período contractual + 12 meses; anonimizar después; documentar en contrato de encargo (V-08) |
-| D5 | Qué ve el operador/conductor del manifiesto (REQ-003) | Minimización de datos: el conductor no necesita RUT ni correo | Nombre y parada; identificador interno solo para el supervisor |
+| D5 | Qué ve el operador/conductor del manifiesto (REQ-003) | Minimización de datos: el conductor no necesita RUT ni correo | **Decidido — DEC-006 (2026-09-08):** el conductor lo controla la empresa contratista; no es usuario de la plataforma en el piloto. El operador del contratista ve el manifiesto (nombre y parada) y registra patente y conductor como evidencia (H-002). Sin acceso del conductor a datos del trabajador |
 | D6 | Si el corte vertical se implementa en el HTML (simulación declarada) o espera el backend (ADR-001) | T-05 depende de la autorización de backend | Simular en `09-plataforma/app/` solo el flujo de alta/aprobación con marca "simulación", sin credenciales reales; el backend sigue pendiente de ADR-001 |
 
-Dependencias: ADR-001 (autenticación y aislamiento en servidor), V-08 (responsable/encargado de datos), PR-06 (paradas reales para que el trabajador elija su punto).
+Dependencias: ADR-001 (autenticación y aislamiento en servidor), V-08 (responsable/encargado de datos), PR-06 (paradas reales para que el trabajador elija su punto), V-16/SPEC-003 (capacidad real por van condiciona cupos y lista de espera).
+
+Estado de las decisiones al 2026-09-08: D5 decidida (DEC-006). D1, D2, D3, D4 y D6 siguen pendientes; el Supervisor propone aprobar las opciones sugeridas de la tabla con un "sí" explícito del dueño o corregir la que no corresponda. No se avanza a "En revisión" sin esa respuesta.

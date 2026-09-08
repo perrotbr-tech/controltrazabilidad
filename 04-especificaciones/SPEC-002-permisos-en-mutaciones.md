@@ -1,5 +1,5 @@
 # SPEC-002 — Permisos en todas las mutaciones del prototipo
-Estado (PLANTILLA-SPEC): Verificada en `app/` con DOM simulado; contraprueba manual pendiente. Propietario humano: Eduardo Perrot.
+Estado (PLANTILLA-SPEC): **Verificada** — DOM simulado 21/21 y contraprueba manual en navegador con los cuatro perfiles confirmada por el dueño el 2026-09-08 ("contraprueba OK"). Propietario humano: Eduardo Perrot.
 Corrección autorizada bajo DEC-005 (corrección del MVP, no ampliación); SPEC breve según nota operativa de la plantilla. Aprobaciones (sección 12): Técnico = revisor-qa sin bloqueantes; Producto/Operación/Contrato/Seguridad = no requeridas para una corrección de defecto sin cambio de alcance, según CLAUDE.md.
 Origen: T-01 auditoría de baseline · 00-contexto/inventario-mvp-actual.md ("requirePermission no cubre por sí solo contrato y recurso en todas las mutaciones") · invariante CLAUDE.md "ocultar pestañas no protege datos" · HIP-01/HIP-04.
 
@@ -56,7 +56,7 @@ AC-15: cada intento rechazado queda en auditoría como ACCESO DENEGADO.
 - T-01a/b/c/d ejecutadas. `check-permisos.cjs`: 21/21 en `app/`, 7/21 en baseline. `check-baseline.cjs`: PASS. Baseline sin cambios.
 - Revisión `revisor-qa`: sin defectos bloqueantes. D-1 (`subsana` sellaba antes de la transición) y D-2 (`excluyeOk` marcaba `excluido` antes de validar) corregidos por el Supervisor y cubiertos por AC-16 y AC-17; AC-18…AC-21 añadidos a propuesta del revisor (caminos positivos R2/R4, estado inválido).
 - Registrado sin corregir: D-3 `window.app.reset` sin permiso borra la auditoría (utilería de demo; decidir si se condiciona a `DEMO`); D-4 la excepción de `transicion` depende de un argumento del llamador, no del rol (robustez, no escalada); D-5 un estado destino desconocido audita "Permiso undefined" (fail-closed, mensaje pobre).
-- Pendiente: contraprueba manual en navegador con los cuatro perfiles (R5).
+- R5 contraprueba manual: **OK, confirmada por el dueño el 2026-09-08.** SPEC-002 cerrada; `app/index.html` pasa a ser la copia de trabajo vigente.
 
 ## Fuera de alcance (registrado, no corregido aquí)
 - Clasificación mensual por prefijo UTC (`s.salida.startsWith(MES)`) frente al invariante America/Santiago: requiere SPEC propia (candidata SPEC-003).

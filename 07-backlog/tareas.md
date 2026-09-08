@@ -9,4 +9,6 @@
 | T-06 | S4 operación Enjoy | Datos/entrevistas pendientes | As-is, contrato anonimizado y variables confirmadas |
 | T-07 | S5 síntesis comprar/configurar/construir | Depende de evidencia | Recomendación con costos e incertidumbre |
 | T-08 | Extras/evidencia/cierre inmutable | Especificar tras flujo inicial | Cierre reproducible sin alteración histórica |
+| T-09 | SPEC-003 configuración operativa real (V-16: 24 viajes, 4 vans, ~15 pasajeros) | Borrador; bloqueada por Q1–Q5 al dueño | Parámetros en contrato, semilla regenerada, pruebas verdes |
+| T-10 | Huso horario: clasificación mensual por prefijo UTC vs America/Santiago; `reset` de demo sin permiso (QA D-3) | Pendiente de SPEC | Prueba que cruce medianoche y fin de mes |
 El alcance actual no incluye módulos mineros, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo.
