@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Trazabilidad de Transporte</title>
+<style>
+:root{
+  color-scheme: light only;
+  --fondo:#EEF1F3; --panel:#FFFFFF; --tinta:#16202A; --gris:#55636E; --linea:#D5DBE0;
+  --ambar:#E29A0C; --ambar-osc:#8A5E00; --ambar-suave:#FCEFD2;
+  --verde:#186B3D; --verde-suave:#E0EFE6; --rojo:#A32E24; --rojo-suave:#F6E2DF;
+  --azul:#25577E; --azul-suave:#E1EAF2; --suave:#F5F7F8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--fondo);color:var(--tinta)}
+body{font-family:system-ui,'Segoe UI',Roboto,sans-serif;font-size:14.5px;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:9px 14px;background:var(--tinta);color:#FFFFFF}
+button.sec{background:#FFFFFF;color:var(--tinta);border:1.5px solid var(--linea)}
+button.ok{background:var(--verde);color:#FFFFFF} button.no{background:var(--rojo);color:#FFFFFF}
+button.amb{background:var(--ambar);color:#26200E;font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{font:inherit;padding:9px 10px;border:1.5px solid var(--linea);border-radius:8px;background:#FFFFFF;color:var(--tinta);width:100%}
+label{font-size:12.5px;color:var(--gris);display:block;margin:9px 0 4px}
+h1{font-size:20px;font-weight:700;color:var(--tinta)} h2{font-size:16.5px;font-weight:700;color:var(--tinta)} h3{font-size:14.5px;font-weight:700;color:var(--tinta)}
+p,td,th,div,span,li{color:inherit}
+.sub{color:var(--gris);font-size:13px}
+
+.topbar{background:var(--tinta);color:#FFFFFF;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar *{color:#FFFFFF}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo .ruta{width:32px;height:9px;border-radius:6px;background:linear-gradient(90deg,var(--ambar) 0 26%,#FFFFFF 26% 37%,var(--ambar) 37% 63%,#FFFFFF 63% 74%,var(--ambar) 74%);flex:0 0 auto}
+.logo b{font-size:15.5px}
+.usuario{margin-left:auto;text-align:right;font-size:12.5px;line-height:1.35;min-width:0}
+.usuario b{font-size:13.5px}
+.demo-flag{background:var(--ambar);color:#26200E !important;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:800;letter-spacing:.3px}
+.demo-flag *{color:#26200E !important}
+
+/* Navegación móvil: horizontal desplazable, activa siempre visible */
+.nav{display:flex;gap:6px;padding:9px 14px;background:#FFFFFF;border-bottom:1.5px solid var(--linea);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:0;z-index:5}
+.nav::-webkit-scrollbar{display:none}
+.nav button{background:transparent;color:var(--gris);padding:8px 13px;border-radius:8px;font-size:13.5px;white-space:nowrap;flex:0 0 auto}
+.nav button.activo{background:var(--tinta);color:#FFFFFF;font-weight:700}
+.cont{max-width:1000px;margin:0 auto;padding:16px 14px 60px}
+@media(min-width:700px){.cont{padding:20px 22px 60px}.nav{padding:10px 22px}.topbar{padding:14px 22px}}
+
+.tarjeta{background:var(--panel);border:1.5px solid var(--linea);border-radius:12px;padding:15px 16px;margin-bottom:13px}
+.fila{display:flex;gap:13px;flex-wrap:wrap} .fila>*{flex:1;min-width:190px}
+.grid2{display:grid;grid-template-columns:1fr;gap:13px}
+@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--gris);font-weight:700;font-size:11.5px;padding:7px 8px;border-bottom:1.5px solid var(--linea);background:#FFFFFF}
+td{padding:8px;border-bottom:1px solid var(--linea);vertical-align:top;color:var(--tinta)}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+
+.kpi{font-size:23px;font-weight:800;line-height:1.15;color:var(--tinta)}
+.kpi small{font-size:12px;font-weight:500;color:var(--gris);display:block;margin-top:3px}
+.chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.c-gris{background:var(--suave);color:var(--gris);border:1px solid var(--linea)}
+.c-ambar{background:var(--ambar-suave);color:var(--ambar-osc)}
+.c-verde{background:var(--verde-suave);color:var(--verde)}
+.c-rojo{background:var(--rojo-suave);color:var(--rojo)}
+.c-azul{background:var(--azul-suave);color:var(--azul)}
+
+.advertencia{background:var(--ambar-suave);border:1.5px solid #E8CF9A;border-radius:10px;padding:10px 13px;font-size:12.5px;color:#5C4405;margin-bottom:13px}
+.advertencia b{display:block;margin-bottom:2px;color:#5C4405}
+.aviso-mvp{background:var(--azul-suave);border:1.5px solid #B9CDDE;border-radius:10px;padding:10px 13px;font-size:12.5px;color:#1B415F;margin-bottom:13px}
+
+.barra{height:9px;border-radius:6px;background:var(--linea);overflow:hidden;display:flex;margin-top:6px}
+.barra i{display:block;height:100%}
+.barra .b-conf{background:var(--verde)} .barra .b-esp{background:var(--rojo)} .barra .b-extra{background:var(--ambar)}
+
+.linea-estados{display:flex;align-items:flex-start;margin:10px 0 4px;overflow-x:auto;padding-bottom:4px}
+.parada{display:flex;flex-direction:column;align-items:center;min-width:82px;position:relative;font-size:10.5px;color:var(--gris);text-align:center}
+.parada .punto{width:14px;height:14px;border-radius:50%;background:#FFFFFF;border:3px solid var(--linea);z-index:2}
+.parada:not(:last-child)::after{content:"";position:absolute;top:5.5px;left:50%;width:100%;height:3px;background:var(--linea);z-index:1}
+.parada.hecha .punto{border-color:var(--ambar);background:var(--ambar)}
+.parada.hecha:not(:last-child)::after{background:var(--ambar)}
+.parada.mala .punto{border-color:var(--rojo);background:var(--rojo)}
+.parada span{margin-top:5px;max-width:80px}
+
+.vacio{color:var(--gris);text-align:center;padding:24px 10px;font-size:13.5px}
+.aud{font-size:12px;color:var(--gris);border-left:3px solid var(--linea);padding:4px 10px;margin:5px 0}
+.aud.denegado{border-left-color:var(--rojo);color:var(--rojo)}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 14px;background:var(--tinta)}
+.login{background:#FFFFFF;border-radius:14px;padding:24px 20px;max-width:430px;width:100%}
+.login h1{margin-bottom:4px}
+.cuenta{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#FFFFFF;color:var(--tinta);
+  border:1.5px solid var(--linea);border-radius:10px;padding:11px 13px;margin-top:9px}
+.cuenta:hover{border-color:var(--ambar)}
+.cuenta .ini{width:34px;height:34px;border-radius:50%;background:var(--suave);color:var(--tinta);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
+.cuenta small{display:block;color:var(--gris);font-size:12px}
+
+.velo{position:fixed;inset:0;background:rgba(22,32,42,.6);display:none;align-items:flex-start;justify-content:center;padding:26px 12px;overflow:auto;z-index:50}
+.velo.abierto{display:flex}
+.modal{background:#FFFFFF;border-radius:12px;max-width:620px;width:100%;padding:20px}
+.doc{background:#FFFFFF;border:1.5px solid var(--linea);border-radius:10px;padding:20px;font-size:13.5px}
+.doc .cab{border-bottom:3px solid var(--tinta);padding-bottom:10px;margin-bottom:12px}
+.doc .correl{font-size:18px;font-weight:800}
+.tot{background:var(--suave);font-weight:800}
+:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="raiz"></div>
+<div class="velo" id="velo"><div class="modal" id="modal"></div></div>
+
+<script>
+/* =========================================================================
+   TRAZABILIDAD DE TRANSPORTE — MVP v2
+   Nota de arquitectura: este MVP corre 100% en el navegador. Las reglas de
+   autorización están CENTRALIZADAS en requirePermission() para que la
+   migración a backend sea conectar, no rediseñar. La validación real de
+   servidor pertenece a la fase 2 (ver aviso en la interfaz).
+   ========================================================================= */
+const KEY='trazabilidad_v2';
+const AHORA=new Date('2026-09-15T18:30:00');
+const MES='2026-09';
+const DEMO = !location.search.includes('prod=1');   // en producción: variable de entorno
+const CIERRE_MIN=60;                                 // reservas cierran 60 min antes
+
+const fmt$=v=>v==null?'—':'$'+Math.round(v).toLocaleString('es-CL');
+const fmtN=v=>v==null?'—':(''+(Math.round(v*10)/10)).replace('.',',');
+const div=(a,b)=>(!b||b===0)?null:a/b;
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const dt=s=>new Date(s);
+const fecha=s=>{const d=dt(s);return d.getDate()+' de '+MESES[d.getMonth()];};
+const hora=s=>{const d=dt(s);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const dISO=d=>d.toISOString().slice(0,10);
+
+/* --- Jornada nocturna: comienza a las 23:00 y corre hasta las 22:59 del día siguiente --- */
+function jornadaDe(salidaISO){
+  const d=dt(salidaISO); const ini=new Date(d);
+  if(d.getHours()<23) ini.setDate(ini.getDate()-1);
+  ini.setHours(23,0,0,0);
+  const fin=new Date(ini); fin.setDate(fin.getDate()+1);
+  return {inicio:ini, fin, id:dISO(ini),
+    etiqueta:'Jornada nocturna '+ini.getDate()+'–'+fin.getDate()+' de '+MESES[fin.getMonth()]};
+}
+
+/* ================== SEMILLA: users, organizations, role_assignments ================== */
+function semilla(){
+  const RUTAS=[
+   {id:0,nombre:'Ruta Norte',vans:2,ciclo:'~50 min',
+    paradas:[['Estadio Regional (Av. Angamos)',5],['Mallplaza / Av. Balmaceda',11],['Plaza Colón — Centro',15],['Terminal de Buses',22],['Hospital Regional (Av. Azapa)',26],['Sector Bonilla — Feria',32]]},
+   {id:1,nombre:'Ruta Sur',vans:2,ciclo:'~30 min',
+    paradas:[['Av. Angamos alto',4],['Universidad de Antofagasta — Coloso',8],['Jardines del Sur',14]]}];
+  const S={
+   organizations:[
+    {id:1,nombre:'Hotel Enjoy Antofagasta',tipo:'MANDANTE'},
+    {id:2,nombre:'Transportes del Desierto SpA',tipo:'CONTRATISTA'}],
+   users:[
+    {id:1,nombre:'Camila Fuentes',identificador:'EMP-0142',email:'c.fuentes@enjoy.cl',orgId:1,activo:true},
+    {id:2,nombre:'Rodrigo Salas',identificador:'OPE-0031',email:'r.salas@tdesierto.cl',orgId:2,activo:true},
+    {id:3,nombre:'Patricia Molina',identificador:'SUP-0007',email:'p.molina@enjoy.cl',orgId:1,activo:true},
+    {id:4,nombre:'Administración TT',identificador:'ADM-0001',email:'admin@trazabilidad.cl',orgId:1,activo:true},
+    {id:5,nombre:'Ex Trabajador',identificador:'EMP-0099',email:'inactivo@enjoy.cl',orgId:1,activo:false}],
+   role_assignments:[
+    {id:1,userId:1,orgId:1,rol:'TRABAJADOR',contratoId:1,activo:true,fecha:'2026-01-05',asignadoPor:4},
+    {id:2,userId:2,orgId:2,rol:'CONTRATISTA',contratoId:1,activo:true,fecha:'2026-01-05',asignadoPor:4},
+    {id:3,userId:3,orgId:1,rol:'MANDANTE',contratoId:1,activo:true,fecha:'2026-01-05',asignadoPor:4},
+    {id:4,userId:4,orgId:1,rol:'ADMINISTRADOR',contratoId:null,activo:true,fecha:'2026-01-01',asignadoPor:4},
+    {id:5,userId:4,orgId:1,rol:'MANDANTE',contratoId:1,activo:true,fecha:'2026-02-10',asignadoPor:4},
+    {id:6,userId:5,orgId:1,rol:'TRABAJADOR',contratoId:1,activo:false,fecha:'2026-01-05',asignadoPor:4}],
+   sesion:null, contexto:null, vista:null,
+   contrato:{id:1,mandanteOrg:1,contratistaOrg:2,inicio:'2026-01-01',termino:'2026-12-31',
+     montoFijo:18500000, reglaDevengo:null,   // sin regla de devengo definida
+     capacidadVan:4, vehiculos:4, rutas:RUTAS,
+     origen:'Hotel Enjoy Antofagasta — Av. Angamos 01455',
+     frecuencias:'Salidas cada 1 hora desde el Enjoy; las vans recorren su ruta y regresan al hotel dentro del ciclo',
+     horarios:'Desde las 23:00 hasta las 06:00, cada 1 hora (8 salidas por jornada, por ruta — ventana operativa real del Enjoy)',
+     tiposVehiculo:'Van de pasajeros — 4 cupos por van · 2 vans por ruta', dotacion:300,
+     reajuste:'IPC semestral (informativo — el monto reajustado se ingresa con trazabilidad)',
+     extrasPermitidos:true, tarifaExtra:45000,
+     requisitosExtra:'Demanda confirmada sobre los cupos de la salida, o contingencia operacional con evidencia',
+     codigoConciliacion:'CT-2026', estado:'Vigente'},
+   servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[]};
+
+  const perfil=(h,ri)=>{ if(h===23||h===6) return ri===0?11:9;
+    if(h===0) return ri===0?7:6;
+    if(h>=1&&h<=5) return 3; return ri===0?6:4;};
+  const HORAS_OPERATIVAS=[23,0,1,2,3,4,5,6]; // ventana real Enjoy: 23:00–06:00, 1 salida/hora
+  let sid=0,rid=0;
+  for(let d=8;d<=16;d++){
+    for(const hh of HORAS_OPERATIVAS){
+      const salida=new Date(2026,8,d,hh,0,0);
+      if(salida<new Date(2026,8,8,23,0,0)) continue;
+      if(salida>new Date(2026,8,16,6,0,0)) continue;
+      RUTAS.forEach((R,ri)=>{
+        sid++;
+        const cierre=new Date(salida.getTime()-CIERRE_MIN*60000);
+        const svc={id:sid,rutaIdx:ri,ruta:R.nombre,salida:salida.toISOString(),cierre:cierre.toISOString(),
+          capacidadBase:R.vans*4,capacidadExtra:0,vans:R.vans,ejecutado:salida<AHORA};
+        S.servicios.push(svc);
+        let n=perfil(hh,ri);
+        if(d===10&&hh===23&&ri===0) n=13;
+        if(d===15&&hh===23&&ri===0) n=11;
+        if(d===12&&hh===6&&ri===0) n=6; // caso Rechazado: demanda baja, sin justificación   // caso de prueba: 11 solicitudes / 8 cupos
+        for(let k=0;k<n;k++){ rid++;
+          const p=R.paradas[k%R.paradas.length];
+          S.reservas.push({id:rid,servicioId:sid,userId:((rid%300)+1),
+            nombre:'Trabajador '+String((rid%300)+1).padStart(3,'0'),
+            parada:p[0],offset:p[1],creada:new Date(salida.getTime()-(6+k)*3600000).toISOString(),
+            estado:'pendiente'});
+        }
+      });
+    }
+  }
+  // las reservas de Camila (userId 1) en servicios futuros de Ruta Norte
+  const futuroN=S.servicios.filter(s=>!s.ejecutado&&s.rutaIdx===0).slice(0,3);
+  futuroN.forEach((s,i)=>{ const r=S.reservas.find(r=>r.servicioId===s.id); if(r){r.userId=1;r.nombre='Camila Fuentes';} });
+  S.extras=[
+   {id:1,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===10&&dt(s.salida).getHours()===23).id,
+    motivo:'Reservas (13) superan los 8 cupos de la salida',tipo:'cuantitativa',vans:1,capacidadExtra:4,tarifa:45000,
+    estado:'Utilizado',solicitadoPor:2,fechaSolicitud:'2026-09-10T21:40:00',autorizadoPor:3,fechaAutorizacion:'2026-09-10T22:05:00',
+    motivoAutorizacion:'Demanda confirmada sobre capacidad',evidencia:{patente:true,salida:true,manifiesto:true},
+    pasajerosExtra:4,reclasificacion:null},
+   {id:2,servicioId:S.servicios.find(s=>s.rutaIdx===1&&dt(s.salida).getDate()===11&&dt(s.salida).getHours()===6).id,
+    motivo:'Falla mecánica de una van al iniciar el recorrido',tipo:'operacional',vans:1,capacidadExtra:4,tarifa:45000,
+    estado:'Observado',solicitadoPor:2,fechaSolicitud:'2026-09-11T06:12:00',autorizadoPor:null,fechaAutorizacion:null,
+    motivoAutorizacion:null,evidencia:{patente:true,salida:false,manifiesto:false},pasajerosExtra:4,reclasificacion:null,
+    observacion:'Sin autorización previa; emergencia pendiente de validación y evidencia incompleta'},
+   {id:3,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===12&&dt(s.salida).getHours()===6&&s.rutaIdx===0).id,
+    motivo:'Refuerzo preventivo por posible alta demanda',tipo:'cuantitativa',vans:1,capacidadExtra:4,tarifa:45000,
+    estado:'Rechazado',solicitadoPor:2,fechaSolicitud:'2026-09-12T05:40:00',autorizadoPor:3,fechaAutorizacion:'2026-09-12T05:55:00',
+    motivoAutorizacion:'Reservas (6) no superan los 8 cupos y sin contingencia acreditada',
+    evidencia:{patente:false,salida:false,manifiesto:false},pasajerosExtra:0,reclasificacion:null}];
+  S.auditoria=[{fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Extra #1 autorizado',detalle:'Demanda sobre capacidad',anterior:'En revisión'}];
+  recalcularTodo(S);
+  return S;
+}
+let S=cargar();
+function cargar(){try{const g=localStorage.getItem(KEY);if(g){const o=JSON.parse(g);if(o&&o.servicios)return o;}}catch(e){}return semilla();}
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ================== CAPACIDAD Y LISTA DE ESPERA ================== */
+function capacidadTotal(svc){return svc.capacidadBase+svc.capacidadExtra;}
+function recalcular(St,svc){
+  const rs=St.reservas.filter(r=>r.servicioId===svc.id&&r.estado!=='cancelada')
+    .sort((a,b)=>a.creada<b.creada?-1:1);
+  const cap=capacidadTotal(svc); const promovidos=[];
+  rs.forEach((r,i)=>{ const nuevo=i<cap?'confirmada':'espera';
+    if(r.estado==='espera'&&nuevo==='confirmada') promovidos.push(r);
+    r.estado=nuevo; });
+  return promovidos;
+}
+function recalcularTodo(St){St.servicios.forEach(s=>recalcular(St,s));}
+function demanda(svc){
+  const rs=S.reservas.filter(r=>r.servicioId===svc.id&&r.estado!=='cancelada');
+  const conf=rs.filter(r=>r.estado==='confirmada').length;
+  const esp=rs.filter(r=>r.estado==='espera').length;
+  const cap=capacidadTotal(svc);
+  return {solicitudes:rs.length,confirmadas:conf,espera:esp,capacidadBase:svc.capacidadBase,
+    capacidadExtra:svc.capacidadExtra,capacidad:cap,deficit:Math.max(rs.length-cap,0),
+    libres:Math.max(cap-conf,0),
+    estado: rs.length>cap?'Requiere capacidad adicional':(rs.length===cap?'Capacidad completa':'Capacidad disponible')};
+}
+function nivelJustificacion(svc){
+  const D=demanda(svc);
+  if(D.solicitudes>D.capacidad) return {nivel:'Necesidad cuantitativa',clase:'c-verde',auto:true};
+  if(D.solicitudes===D.capacidad) return {nivel:'Capacidad completa',clase:'c-ambar',auto:false};
+  return {nivel:'No requerido por capacidad',clase:'c-gris',auto:false};
+}
+function reservaAbierta(svc){return AHORA < dt(svc.cierre);}
+
+/* ================== PERMISOS (punto único) ================== */
+const PERMISOS={
+  TRABAJADOR:['ver:mis-traslados','crear:reserva','cancelar:reserva-propia'],
+  CONTRATISTA:['ver:operacion','crear:solicitud-extra','registrar:evidencia','ver:trazabilidad-operacional'],
+  MANDANTE:['ver:control-contractual','autorizar:extra','ver:financiero','conciliar:periodo','ver:trazabilidad'],
+  ADMINISTRADOR:['ver:administracion','asignar:rol','ver:trazabilidad','ver:usuarios']
+};
+function usuario(){return S.sesion?S.users.find(u=>u.id===S.sesion):null;}
+function rolesDe(uid){return S.role_assignments.filter(a=>a.userId===uid&&a.activo);}
+function rolActivo(){return S.contexto;}
+function requirePermission(permiso,recurso){
+  const u=usuario();
+  if(!u||!u.activo) return deny('sesión inválida o usuario desactivado',permiso);
+  const asig=rolesDe(u.id).find(a=>a.rol===S.contexto);
+  if(!asig) return deny('sin asignación activa para el contexto '+S.contexto,permiso);
+  if(!(PERMISOS[S.contexto]||[]).includes(permiso)) return deny('rol '+S.contexto+' no tiene el permiso',permiso);
+  // reglas por recurso
+  if(recurso&&recurso.tipo==='reserva'&&S.contexto==='TRABAJADOR'&&recurso.userId!==u.id)
+    return deny('un trabajador solo opera sus propias reservas',permiso);
+  if(recurso&&recurso.tipo==='servicio'&&S.contexto==='CONTRATISTA'&&asig.orgId!==S.contrato.contratistaOrg)
+    return deny('servicio fuera de la organización del contratista',permiso);
+  return true;
+}
+function deny(motivo,permiso){
+  audita('ACCESO DENEGADO','Permiso '+permiso+' — '+motivo,'',true);
+  return false;
+}
+function audita(accion,detalle,anterior,denegado){
+  const u=usuario();
+  S.auditoria.unshift({fecha:AHORA.toISOString(),usuario:u?u.nombre:'(anónimo)',rol:S.contexto||'—',
+    accion,detalle:detalle||'',anterior:anterior||'',denegado:!!denegado});
+  guardar();
+}
+const RUTA_INICIO={TRABAJADOR:'mis-traslados',CONTRATISTA:'operacion',MANDANTE:'control-contractual',ADMINISTRADOR:'administracion'};
+const MENUS={
+  TRABAJADOR:[['mis-traslados','Mis traslados'],['historial','Historial'],['perfil','Mi perfil']],
+  CONTRATISTA:[['operacion','Demanda y abordajes'],['extras','Vehículos adicionales'],['trazabilidad-op','Trazabilidad operacional']],
+  MANDANTE:[['control-contractual','Panel de control'],['solicitudes','Solicitudes de extras'],['conciliacion','Conciliación mensual'],['contrato','Contrato'],['trazabilidad','Trazabilidad']],
+  ADMINISTRADOR:[['administracion','Usuarios y roles'],['empresas','Empresas'],['auditoria','Auditoría']]
+};
+const PERMISO_VISTA={'mis-traslados':'ver:mis-traslados','historial':'ver:mis-traslados','perfil':'ver:mis-traslados',
+ 'operacion':'ver:operacion','extras':'ver:operacion','trazabilidad-op':'ver:trazabilidad-operacional',
+ 'control-contractual':'ver:control-contractual','solicitudes':'ver:control-contractual','conciliacion':'conciliar:periodo',
+ 'contrato':'ver:control-contractual','trazabilidad':'ver:trazabilidad',
+ 'administracion':'ver:administracion','empresas':'ver:administracion','auditoria':'ver:trazabilidad'};
+
+/* ================== SESIÓN ================== */
+function login(uid){
+  const u=S.users.find(x=>x.id===uid);
+  const roles=rolesDe(uid);
+  S.sesion=uid;
+  if(!u.activo||roles.length===0){S.contexto=null;S.vista=null;guardar();audita('Inicio de sesión rechazado','Cuenta sin acceso activo','',true);render();return;}
+  S.contexto=roles[0].rol; S.vista=RUTA_INICIO[S.contexto];
+  audita('Inicio de sesión',u.nombre+' — contexto '+S.contexto,''); guardar(); render();
+}
+function logout(){audita('Cierre de sesión','',''); S.sesion=null;S.contexto=null;S.vista=null;guardar();render();}
+function cambiarContexto(rol){
+  const dispo=rolesDe(S.sesion).map(a=>a.rol);
+  if(!dispo.includes(rol)){deny('contexto no autorizado','cambiar:contexto');alert('Contexto no autorizado.');return;}
+  const ant=S.contexto; S.contexto=rol; S.vista=RUTA_INICIO[rol];
+  audita('Cambio de contexto','→ '+rol,ant); guardar(); render();
+}
+function irA(v){
+  const permiso=PERMISO_VISTA[v];
+  if(!requirePermission(permiso,null)){ S.vista='denegado'; render(); return; }
+  S.vista=v; guardar(); render();
+}
+
+/* ================== RENDER ================== */
+function render(){
+  const raiz=document.getElementById('raiz');
+  if(!S.sesion){raiz.innerHTML=vLogin();return;}
+  const u=usuario(); const roles=rolesDe(u.id);
+  if(!u.activo||roles.length===0){raiz.innerHTML=vSinAcceso(u);return;}
+  const menu=MENUS[S.contexto]||[];
+  raiz.innerHTML=`
+  <div class="topbar">
+    <div class="logo"><div class="ruta"></div><div><b>Trazabilidad de Transporte</b>
+      <div style="font-size:11.5px;opacity:.8">${S.contexto==='CONTRATISTA'?'Transportes del Desierto SpA':'Hotel Enjoy Antofagasta'}</div></div></div>
+    <div class="usuario"><b>${u.nombre}</b><div style="opacity:.8">${u.identificador} · ${S.contexto}</div>
+      <div style="margin-top:5px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+      ${roles.length>1?`<select onchange="cambiarContexto(this.value)" style="width:auto;padding:3px 6px;font-size:12px;color:#16202A">
+        ${roles.map(r=>`<option value="${r.rol}" ${r.rol===S.contexto?'selected':''}>${r.rol}</option>`).join('')}</select>`:''}
+      <button class="sec" style="padding:3px 10px;font-size:12px;color:#16202A" onclick="logout()">Salir</button></div>
+    </div>
+    ${DEMO?'<span class="demo-flag">MODO DEMOSTRACIÓN</span>':''}
+  </div>
+  <div class="nav">${menu.map(([id,nom])=>`<button class="${S.vista===id?'activo':''}" onclick="irA('${id}')">${nom}</button>`).join('')}</div>
+  <div class="cont" id="cont"></div>`;
+  const V={'mis-traslados':vMisTraslados,'historial':vHistorial,'perfil':vPerfil,
+    'operacion':vOperacion,'extras':vExtras,'trazabilidad-op':vAuditoria,
+    'control-contractual':vPanel,'solicitudes':vSolicitudes,'conciliacion':vConciliacion,'contrato':vContrato,'trazabilidad':vAuditoria,
+    'administracion':vAdmin,'empresas':vEmpresas,'auditoria':vAuditoria,'denegado':vDenegado};
+  document.getElementById('cont').innerHTML=(V[S.vista]||vDenegado)();
+}
+function vLogin(){
+  return `<div class="login-wrap"><div class="login">
+    <h1>Trazabilidad de Transporte</h1>
+    <p class="sub">Inicia sesión. El sistema abre automáticamente la interfaz que corresponde a tu perfil — los roles los asigna el administrador.</p>
+    ${DEMO?`<div class="advertencia" style="margin-top:14px"><b>Modo demostración</b>Cuentas de prueba para recorrer el MVP. En producción este listado no existe: se ingresa con credenciales y el rol proviene de la base de datos.</div>`:''}
+    ${S.users.map(u=>{const r=rolesDe(u.id).map(a=>a.rol);
+      return `<button class="cuenta" onclick="login(${u.id})">
+        <span class="ini">${u.nombre.split(' ').map(p=>p[0]).slice(0,2).join('')}</span>
+        <span style="flex:1"><b>${u.nombre}</b><small>${u.identificador} · ${r.length?r.join(' + '):'sin rol asignado'}${u.activo?'':' · cuenta desactivada'}</small></span></button>`;}).join('')}
+    <div class="aviso-mvp" style="margin-top:16px">Este MVP corre en el navegador: la autorización está centralizada en <b>requirePermission()</b> y toda decisión queda auditada, pero la validación definitiva del servidor corresponde a la etapa con backend.</div>
+  </div></div>`;
+}
+function vSinAcceso(u){
+  return `<div class="login-wrap"><div class="login">
+    <h1>Sin acceso asignado</h1>
+    <p class="sub" style="margin-top:6px">Tu cuenta todavía no tiene acceso asignado. Contacta al administrador de Trazabilidad de Transporte.</p>
+    <div class="acciones"><button onclick="logout()">Volver</button></div></div></div>`;
+}
+function vDenegado(){
+  return `<div class="tarjeta"><h1>Acceso denegado</h1>
+  <p class="sub" style="margin-top:6px">Tu perfil (${S.contexto}) no está autorizado para esta sección. El intento quedó registrado en la auditoría.</p>
+  <div class="acciones"><button onclick="irA('${RUTA_INICIO[S.contexto]}')">Ir a mi inicio</button></div></div>`;
+}
+
+/* ---------- TRABAJADOR ---------- */
+function tarjetaServicio(s,mia){
+  const J=jornadaDe(s.salida); const D=demanda(s); const R=S.contrato.rutas[s.rutaIdx];
+  const abierta=reservaAbierta(s);
+  const paso=mia?new Date(dt(s.salida).getTime()+ (mia.offset||0)*60000):null;
+  return `<div class="tarjeta">
+    <div class="sub">${J.etiqueta}</div>
+    <h3 style="margin-top:2px">${s.ruta} · ${hora(s.salida)}</h3>
+    <div class="sub">${fecha(s.salida)} · sale del Enjoy · ciclo ${R.ciclo}</div>
+    ${mia?`<div style="margin-top:8px"><b>${mia.parada}</b><div class="sub">Paso estimado por tu punto: ${hora(paso.toISOString())}</div></div>`:''}
+    <div class="fila" style="align-items:center;margin-top:9px">
+      <div><span class="sub">Capacidad</span><br><b>${D.confirmadas}/${D.capacidad}</b> ${D.capacidadExtra?`<span class="chip c-ambar">+${D.capacidadExtra} autorizados</span>`:''}
+        <div class="barra"><i class="b-conf" style="width:${(D.confirmadas/Math.max(D.solicitudes,D.capacidad))*100}%"></i><i class="b-esp" style="width:${(D.espera/Math.max(D.solicitudes,D.capacidad))*100}%"></i></div>
+        <div class="sub" style="margin-top:4px">${D.solicitudes} solicitudes · ${D.confirmadas} confirmadas · ${D.espera} en espera</div></div>
+      <div style="text-align:right">
+        ${mia?`<span class="chip ${mia.estado==='confirmada'?'c-verde':'c-ambar'}">${mia.estado==='confirmada'?'Reserva confirmada':'En espera de vehículo adicional'}</span>`
+             :`<span class="chip c-gris">Sin reserva</span>`}
+        <div class="sub" style="margin-top:5px">${abierta?'Cierre de reservas: '+hora(s.cierre)+' · '+fecha(s.cierre):'<b>Reserva cerrada</b>'}</div>
+      </div>
+    </div>
+    <div class="acciones">
+      ${mia? (abierta?`<button class="sec" onclick="cancelar(${mia.id})">Cancelar reserva</button>`:`<button class="sec" disabled>Reserva cerrada</button>`)
+           : (abierta?`<button class="amb" onclick="abreReserva(${s.id})">${D.solicitudes>=D.capacidad?'Solicitar cupo (lista de espera)':'Reservar cupo'}</button>`:`<button disabled>Reserva cerrada</button>`)}
+    </div></div>`;
+}
+function vMisTraslados(){
+  if(!requirePermission('ver:mis-traslados')) return vDenegado();
+  const u=usuario();
+  const futuros=S.servicios.filter(s=>!s.ejecutado).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,10);
+  return `<h1>Mis traslados</h1><p class="sub">Reserva tu cupo. Si la salida está llena, quedas en espera de vehículo adicional y el contratista lo tramita.</p>
+  ${futuros.map(s=>tarjetaServicio(s,S.reservas.find(r=>r.servicioId===s.id&&r.userId===u.id&&r.estado!=='cancelada'))).join('')}`;
+}
+function vHistorial(){
+  if(!requirePermission('ver:mis-traslados')) return vDenegado();
+  const u=usuario();
+  const mias=S.reservas.filter(r=>r.userId===u.id).map(r=>({r,s:S.servicios.find(x=>x.id===r.servicioId)}))
+    .filter(x=>x.s&&x.s.ejecutado).sort((a,b)=>a.s.salida<b.s.salida?1:-1).slice(0,20);
+  return `<h1>Historial</h1><p class="sub">Traslados ya ejecutados.</p>
+  <div class="tarjeta">${mias.length?`<table><thead><tr><th>Jornada</th><th>Salida</th><th>Punto</th><th>Estado</th></tr></thead><tbody>
+   ${mias.map(({r,s})=>`<tr><td>${jornadaDe(s.salida).etiqueta}</td><td>${fecha(s.salida)} ${hora(s.salida)}<br><span class="sub">${s.ruta}</span></td><td>${r.parada}</td><td><span class="chip ${r.estado==='confirmada'?'c-verde':'c-ambar'}">${r.estado}</span></td></tr>`).join('')}
+  </tbody></table>`:'<div class="vacio">Sin traslados anteriores.</div>'}</div>`;
+}
+function vPerfil(){
+  if(!requirePermission('ver:mis-traslados')) return vDenegado();
+  const u=usuario(); const org=S.organizations.find(o=>o.id===u.orgId); const a=rolesDe(u.id)[0];
+  return `<h1>Mi perfil</h1><p class="sub">Tus datos provienen de la sesión y del registro del administrador — no son editables desde aquí.</p>
+  <div class="tarjeta"><table><tbody>
+   <tr><td>Nombre</td><td><b>${u.nombre}</b></td></tr>
+   <tr><td>Identificador</td><td>${u.identificador}</td></tr>
+   <tr><td>Empresa</td><td>${org.nombre}</td></tr>
+   <tr><td>Perfil asignado</td><td>${a.rol} <span class="sub">(asignado el ${a.fecha})</span></td></tr>
+   <tr><td>Estado de la cuenta</td><td><span class="chip c-verde">Activa</span></td></tr>
+  </tbody></table></div>`;
+}
+function abreReserva(sid){
+  const s=S.servicios.find(x=>x.id===sid); const R=S.contrato.rutas[s.rutaIdx]; const D=demanda(s);
+  modal(`<h2>${s.ruta} · ${hora(s.salida)}</h2>
+  <p class="sub">${jornadaDe(s.salida).etiqueta} — salida ${fecha(s.salida)} ${hora(s.salida)}</p>
+  ${D.solicitudes>=D.capacidad?`<div class="advertencia" style="margin-top:10px"><b>Salida con capacidad completa</b>Tu solicitud quedará <b>en espera de vehículo adicional</b>. El contratista puede solicitar una van y el mandante decide.</div>`:''}
+  <label>Punto de abordaje</label>
+  <select id="mParada">${R.paradas.map(p=>`<option value="${p[0]}|${p[1]}">${p[0]} — paso ~${hora(new Date(dt(s.salida).getTime()+p[1]*60000).toISOString())}</option>`).join('')}</select>
+  <div class="acciones"><button class="amb" onclick="reservar(${sid})">Confirmar solicitud</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function reservar(sid){
+  const s=S.servicios.find(x=>x.id===sid);
+  if(!requirePermission('crear:reserva')){alert('No autorizado.');return;}
+  if(!reservaAbierta(s)){alert('Las reservas de esta salida están cerradas.');return;}
+  const u=usuario(); const v=document.getElementById('mParada').value.split('|');
+  const id=Math.max(0,...S.reservas.map(r=>r.id))+1;
+  S.reservas.push({id,servicioId:sid,userId:u.id,nombre:u.nombre,parada:v[0],offset:+v[1],
+    creada:AHORA.toISOString(),estado:'pendiente'});
+  recalcular(S,s);
+  const mia=S.reservas.find(r=>r.id===id);
+  audita('Reserva creada',s.ruta+' '+hora(s.salida)+' · '+v[0]+' · '+mia.estado,'');
+  guardar(); cierraModal(); render();
+}
+function cancelar(rid){
+  const r=S.reservas.find(x=>x.id===rid);
+  if(!requirePermission('cancelar:reserva-propia',{tipo:'reserva',userId:r.userId})){alert('Solo puedes cancelar tus propias reservas.');return;}
+  const s=S.servicios.find(x=>x.id===r.servicioId);
+  if(!reservaAbierta(s)){alert('Reserva cerrada: requiere excepción autorizada.');return;}
+  r.estado='cancelada';
+  const prom=recalcular(S,s);
+  audita('Reserva cancelada',s.ruta+' '+hora(s.salida)+(prom.length?' · promovidos desde espera: '+prom.length:''),'confirmada');
+  guardar(); render();
+}
+
+/* ---------- CONTRATISTA ---------- */
+function vOperacion(){
+  if(!requirePermission('ver:operacion')) return vDenegado();
+  const svc=S.servicios.filter(s=>dt(s.salida)>=new Date(AHORA.getTime()-36*3600000)).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,24);
+  let jorAct=null; let filas='';
+  svc.forEach(s=>{ const J=jornadaDe(s.salida); const D=demanda(s);
+    if(J.id!==jorAct){jorAct=J.id; filas+=`<tr><td colspan="5" style="background:var(--suave);font-weight:700">${J.etiqueta}</td></tr>`;}
+    filas+=`<tr><td><b>${hora(s.salida)}</b> ${s.ruta}<br><span class="sub">${fecha(s.salida)}</span></td>
+      <td class="n">${D.solicitudes}</td><td class="n">${D.confirmadas}</td><td class="n">${D.espera||'—'}</td>
+      <td><span class="chip ${D.estado==='Requiere capacidad adicional'?'c-rojo':(D.estado==='Capacidad completa'?'c-ambar':'c-gris')}">${D.estado}</span>
+      ${D.capacidadExtra?`<br><span class="chip c-ambar">+${D.capacidadExtra} autorizados</span>`:''}</td></tr>`;});
+  return `<h1>Demanda y abordajes</h1><p class="sub">Solicitudes, cupos confirmados y lista de espera por salida. Las salidas se agrupan por jornada nocturna.</p>
+  <div class="tarjeta"><table><thead><tr><th>Salida</th><th class="n">Solicitudes</th><th class="n">Confirmadas</th><th class="n">En espera</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+}
+function vExtras(){
+  if(!requirePermission('ver:operacion')) return vDenegado();
+  const cand=S.servicios.filter(s=>!s.ejecutado&&!S.extras.some(e=>e.servicioId===s.id))
+    .sort((a,b)=>a.salida<b.salida?-1:1).slice(0,14);
+  return `<h1>Vehículos adicionales</h1><p class="sub">Se solicita una van completa (4 cupos) para una salida. El sistema muestra la justificación; la decisión es del mandante.</p>
+  <div class="tarjeta" style="border-color:var(--ambar)"><h2>Solicitar van adicional</h2>
+   <label>Salida</label>
+   <select id="selSalida">${cand.map(s=>{const D=demanda(s);const N=nivelJustificacion(s);
+     return `<option value="${s.id}">${fecha(s.salida)} ${hora(s.salida)} · ${s.ruta} — ${D.solicitudes}/${D.capacidad} · ${N.nivel}</option>`;}).join('')}</select>
+   <div class="acciones"><button class="amb" onclick="abreSolicitud(+document.getElementById('selSalida').value)">Evaluar y solicitar</button></div></div>
+  ${S.extras.map(tarjetaExtra).join('')}`;
+}
+function abreSolicitud(sid){
+  const s=S.servicios.find(x=>x.id===sid); const D=demanda(s); const N=nivelJustificacion(s);
+  modal(`<h2>Solicitar van adicional</h2>
+  <p class="sub">${jornadaDe(s.salida).etiqueta} — ${s.ruta} · ${fecha(s.salida)} ${hora(s.salida)}</p>
+  <table style="margin-top:10px"><tbody>
+    <tr><td>Demanda registrada</td><td class="n"><b>${D.solicitudes}</b></td></tr>
+    <tr><td>Capacidad base</td><td class="n">${D.capacidadBase}</td></tr>
+    <tr><td>En lista de espera</td><td class="n">${D.espera}</td></tr>
+    <tr><td>Déficit de capacidad</td><td class="n"><b>${D.deficit}</b></td></tr>
+    <tr><td>Capacidad propuesta</td><td class="n">+4 (1 van)</td></tr>
+    <tr><td>Nivel de justificación</td><td class="n"><span class="chip ${N.clase}">${N.nivel}</span></td></tr>
+  </tbody></table>
+  ${!N.auto?`<div class="advertencia" style="margin-top:10px"><b>No justificado por capacidad</b>La demanda no supera los cupos. Solo puedes solicitarlo indicando una razón operacional.</div>
+  <label>Razón operacional</label><select id="mRazon">
+    <option>Falla del vehículo base</option><option>Separación de destinos</option><option>Restricción de seguridad</option><option>Contingencia</option><option>Cambio extraordinario de turno</option></select>`:''}
+  <label>Motivo / detalle</label><textarea id="mMotivo" rows="2">${N.auto?'Reservas ('+D.solicitudes+') superan los '+D.capacidad+' cupos de la salida':''}</textarea>
+  <label>Vans adicionales</label><select id="mVans"><option value="1">1 van (+4 cupos)</option><option value="2">2 vans (+8 cupos)</option></select>
+  <p class="sub" style="margin-top:8px">Tarifa contractual: <b>${fmt$(S.contrato.tarifaExtra)} por van</b> — proviene del contrato.</p>
+  <div class="acciones"><button class="amb" onclick="creaSolicitud(${sid})">Enviar solicitud</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function creaSolicitud(sid){
+  if(!requirePermission('crear:solicitud-extra',{tipo:'servicio'})){alert('No autorizado.');return;}
+  const s=S.servicios.find(x=>x.id===sid); const N=nivelJustificacion(s);
+  const motivo=document.getElementById('mMotivo').value.trim();
+  const razon=document.getElementById('mRazon')?document.getElementById('mRazon').value:null;
+  if(!motivo){alert('El motivo es obligatorio.');return;}
+  if(!N.auto&&!razon){alert('Debes indicar una razón operacional.');return;}
+  const vans=+document.getElementById('mVans').value||1;
+  const id=Math.max(0,...S.extras.map(e=>e.id))+1;
+  S.extras.push({id,servicioId:sid,motivo:(razon?razon+' — ':'')+motivo,tipo:N.auto?'cuantitativa':'operacional',
+    vans,capacidadExtra:vans*S.contrato.capacidadVan,tarifa:S.contrato.tarifaExtra*vans,estado:'Solicitado',
+    solicitadoPor:S.sesion,fechaSolicitud:AHORA.toISOString(),autorizadoPor:null,fechaAutorizacion:null,motivoAutorizacion:null,
+    evidencia:{patente:false,salida:false,manifiesto:false},pasajerosExtra:0,reclasificacion:null});
+  audita('Extra #'+id+' solicitado',(razon?razon+' — ':'')+motivo,''); guardar(); cierraModal(); render();
+}
+const ORDEN=['Solicitado','En revisión','Autorizado','Despachado','Utilizado','Conciliado'];
+const TRANS={'Solicitado':['En revisión','Rechazado'],'En revisión':['Autorizado','Rechazado'],'Autorizado':['Despachado'],
+ 'Despachado':['Utilizado','No utilizado'],'Utilizado':['Observado','Conciliado'],'No utilizado':['Observado','Conciliado'],
+ 'Observado':['Conciliado'],'Rechazado':[],'Conciliado':[]};
+function respaldado(e){const aut=!!e.autorizadoPor||e.emergenciaValidada===true;
+  return aut&&e.evidencia.patente&&e.evidencia.salida&&e.evidencia.manifiesto&&e.tarifa===S.contrato.tarifaExtra*e.vans;}
+function transicion(e,nuevo,motivo){
+  if(!TRANS[e.estado].includes(nuevo)) return {ok:false,error:'Transición no permitida: '+e.estado+' → '+nuevo};
+  if(nuevo==='Conciliado'&&e.estado==='Observado'&&!respaldado(e)&&!e.excluido)
+    return {ok:false,error:'Un Observado solo se concilia subsanando la evidencia o excluyéndolo con motivo'};
+  const ant=e.estado; e.estado=nuevo; audita('Extra #'+e.id+' → '+nuevo,motivo,ant); guardar(); return {ok:true};
+}
+function clasifica(e){
+  if(e.reclasificacion) return e.reclasificacion;
+  if(e.estado==='Rechazado') return '—';
+  if(!e.autorizadoPor&&e.emergenciaValidada!==true&&['Utilizado','Observado'].includes(e.estado)) return 'Servicio sin respaldo suficiente';
+  if(e.tipo==='operacional'&&e.emergenciaValidada===true) return 'Contingencia justificada';
+  const o=div(e.pasajerosExtra,e.capacidadExtra);
+  if(o==null) return e.estado==='No utilizado'?'Vehículo adicional sin utilización':'Pendiente de datos';
+  if(o>=0.6) return 'Necesidad confirmada'; if(o>=0.25) return 'Necesidad parcialmente confirmada';
+  if(o>0) return 'Vehículo adicional subutilizado'; return 'Vehículo adicional sin utilización';
+}
+function tarjetaExtra(e){
+  const s=S.servicios.find(x=>x.id===e.servicioId); const idx=ORDEN.indexOf(e.estado);
+  const paradas=ORDEN.map((p,i)=>{
+    if(e.estado==='Rechazado'&&p==='Autorizado') return `<div class="parada mala"><div class="punto"></div><span>Rechazado</span></div>`;
+    if(e.estado==='Observado'&&p==='Utilizado') return `<div class="parada mala"><div class="punto"></div><span>Observado</span></div>`;
+    const cls=e.estado==='Rechazado'?(i<=1?'hecha':''):(e.estado==='Observado'?(i<=4?'hecha':''):(i<=idx?'hecha':''));
+    return `<div class="parada ${cls}"><div class="punto"></div><span>${p}</span></div>`;}).join('');
+  const ev=e.evidencia;
+  return `<div class="tarjeta">
+   <div class="sub">${jornadaDe(s.salida).etiqueta}</div>
+   <h3>Extra #${e.id} — ${s.ruta} · ${fecha(s.salida)} ${hora(s.salida)}</h3>
+   <div class="sub">${e.vans} van(es) · +${e.capacidadExtra} cupos · ${fmt$(e.tarifa)}</div>
+   <div class="sub" style="margin-top:3px">Motivo: ${e.motivo}</div>
+   ${e.observacion?`<div class="sub" style="color:var(--rojo);margin-top:3px">Observación: ${e.observacion}</div>`:''}
+   <div style="margin-top:6px"><span class="chip ${['Rechazado','Observado'].includes(e.estado)?'c-rojo':e.estado==='Conciliado'?'c-verde':'c-ambar'}">${e.estado}</span>
+    ${['Utilizado','No utilizado','Observado','Conciliado'].includes(e.estado)?`<span class="chip c-gris">${clasifica(e)}</span>`:''}
+    <span class="chip ${respaldado(e)?'c-verde':'c-gris'}">${respaldado(e)?'Respaldado':'Respaldo incompleto'}</span></div>
+   <div class="linea-estados">${paradas}</div>
+   ${S.contexto==='CONTRATISTA'?`
+   <div class="fila" style="font-size:13px;align-items:center">
+     <div>Evidencia:
+       <label style="display:inline"><input type="checkbox" style="width:auto" ${ev.patente?'checked':''} onchange="marcaEv(${e.id},'patente',this.checked)"> Patente</label>
+       <label style="display:inline;margin-left:8px"><input type="checkbox" style="width:auto" ${ev.salida?'checked':''} onchange="marcaEv(${e.id},'salida',this.checked)"> Salida</label>
+       <label style="display:inline;margin-left:8px"><input type="checkbox" style="width:auto" ${ev.manifiesto?'checked':''} onchange="marcaEv(${e.id},'manifiesto',this.checked)"> Manifiesto</label></div>
+     <div>Pasajeros: <input type="number" style="width:80px;display:inline-block" value="${e.pasajerosExtra}" onchange="setPax(${e.id},this.value)"></div>
+     <div class="acciones">
+      ${e.estado==='Autorizado'?`<button onclick="cambia(${e.id},'Despachado','Despachado')">Despachar</button>`:''}
+      ${e.estado==='Despachado'?`<button class="ok" onclick="cambia(${e.id},'Utilizado','Ejecutado')">Utilizado</button><button class="sec" onclick="cambia(${e.id},'No utilizado','Sin uso')">No utilizado</button>`:''}
+      ${e.estado==='Observado'&&respaldado(e)?`<button class="ok" onclick="subsana(${e.id})">Subsanar y conciliar</button>`:''}</div>
+   </div>`:''}</div>`;
+}
+function marcaEv(id,c,v){const e=S.extras.find(x=>x.id===id);if(!requirePermission('registrar:evidencia'))return;const a=e.evidencia[c];e.evidencia[c]=v;audita('Extra #'+id+' evidencia '+c+'='+v,'',''+a);guardar();render();}
+function setPax(id,v){const e=S.extras.find(x=>x.id===id);if(!requirePermission('registrar:evidencia'))return;const a=e.pasajerosExtra;e.pasajerosExtra=Math.max(0,+v||0);audita('Extra #'+id+' pasajeros='+e.pasajerosExtra,'',''+a);guardar();render();}
+function cambia(id,est,m){const e=S.extras.find(x=>x.id===id);const r=transicion(e,est,m);if(!r.ok)alert(r.error);render();}
+function subsana(id){const e=S.extras.find(x=>x.id===id);if(!respaldado(e)){alert('Faltan condiciones de respaldo.');return;}
+  e.subsanado='Evidencia completada el '+fecha(AHORA.toISOString());const r=transicion(e,'Conciliado','Observación subsanada');if(!r.ok)alert(r.error);render();}
+
+/* ---------- MANDANTE ---------- */
+const ADV=`<div class="advertencia"><b>Nota contractual</b>Los indicadores de costo por usuario y ocupación miden eficiencia operacional. No modifican el monto contractual salvo que el contrato establezca expresamente un ajuste.</div>`;
+function periodo(){
+  const svcMes=S.servicios.filter(s=>s.salida.startsWith(MES));
+  const hasta=svcMes.filter(s=>s.ejecutado);
+  const rsHasta=S.reservas.filter(r=>r.estado==='confirmada'&&hasta.some(s=>s.id===r.servicioId));
+  const capHasta=hasta.reduce((a,s)=>a+capacidadTotal(s),0);
+  // proyección: el mes completo tiene 30 días × 24 salidas × 2 rutas
+  const svcMesCompleto=30*8*2; // 8 salidas/ruta (23:00–06:00) × 2 rutas × 30 días
+  const factor=div(svcMesCompleto,hasta.length)||1;
+  return {ejecutados:hasta.length,programados:svcMes.length,transportados:rsHasta.length,capacidad:capHasta,
+    ocupacion:div(rsHasta.length,capHasta),cuposLibres:Math.max(capHasta-rsHasta.length,0),
+    proy:{servicios:svcMesCompleto,pasajeros:Math.round(rsHasta.length*factor),
+      ocupacion:div(rsHasta.length,capHasta),
+      costoServicio:div(S.contrato.montoFijo,svcMesCompleto),
+      costoPasajero:div(S.contrato.montoFijo,Math.round(rsHasta.length*factor))},
+    valorTeorico:(div(S.contrato.montoFijo,capHasta)!=null)?div(S.contrato.montoFijo,capHasta)*Math.max(capHasta-rsHasta.length,0):null};
+}
+function extrasResumen(){
+  const xs=S.extras;
+  const ejec=xs.filter(e=>['Despachado','Utilizado','No utilizado','Observado','Conciliado'].includes(e.estado));
+  const resp=ejec.filter(e=>respaldado(e)&&!e.excluido);
+  const obs=xs.filter(e=>e.estado==='Observado');
+  return {solicitados:xs.length,autorizados:xs.filter(e=>e.autorizadoPor&&e.estado!=='Rechazado').length,
+    rechazados:xs.filter(e=>e.estado==='Rechazado').length,ejecutados:ejec.length,observados:obs.length,
+    montoPresentado:ejec.filter(e=>!e.excluido).reduce((a,e)=>a+(e.tarifa||0),0),
+    montoRespaldado:resp.reduce((a,e)=>a+(e.tarifa||0),0),
+    montoObservado:obs.filter(e=>!e.excluido).reduce((a,e)=>a+(e.tarifa||0),0)};
+}
+function vPanel(){
+  if(!requirePermission('ver:control-contractual')) return vDenegado();
+  const P=periodo(); const X=extrasResumen();
+  return `<h1>Panel de control contractual</h1><p class="sub">Septiembre 2026</p>
+  ${ADV}
+  <div class="tarjeta"><h2>Resultado acumulado a la fecha</h2>
+   <p class="sub">Del 8 al 15 de septiembre — solo servicios ya ejecutados.</p>
+   <table style="margin-top:8px"><tbody>
+    <tr><td>Servicios programados hasta hoy</td><td class="n">${P.programados}</td></tr>
+    <tr><td>Servicios ejecutados hasta hoy</td><td class="n"><b>${P.ejecutados}</b></td></tr>
+    <tr><td>Pasajeros transportados hasta hoy</td><td class="n">${P.transportados}</td></tr>
+    <tr><td>Ocupación acumulada</td><td class="n"><b>${P.ocupacion==null?'—':fmtN(P.ocupacion*100)+'%'}</b></td></tr>
+    <tr><td>Costo devengado</td><td class="n">— <span class="sub">sin regla contractual de devengo</span></td></tr>
+   </tbody></table></div>
+  <div class="tarjeta"><h2>Proyección mensual</h2>
+   <p class="sub">Indicador calculado sobre el valor contractual mensual completo (${fmt$(S.contrato.montoFijo)}).</p>
+   <table style="margin-top:8px"><tbody>
+    <tr><td>Servicios programados del mes completo</td><td class="n">${P.proy.servicios}</td></tr>
+    <tr><td>Proyección de pasajeros</td><td class="n">${P.proy.pasajeros}</td></tr>
+    <tr><td>Ocupación proyectada</td><td class="n">${P.proy.ocupacion==null?'—':fmtN(P.proy.ocupacion*100)+'%'}</td></tr>
+    <tr><td>Costo por servicio proyectado</td><td class="n">${fmt$(P.proy.costoServicio)}</td></tr>
+    <tr><td>Costo por pasajero proyectado</td><td class="n">${fmt$(P.proy.costoPasajero)}</td></tr>
+    <tr><td>Valor teórico asignado a capacidad no utilizada</td><td class="n">${fmt$(P.valorTeorico)}</td></tr>
+   </tbody></table>
+   <div class="advertencia" style="margin-top:10px">Este indicador mide utilización de la capacidad contratada; no representa automáticamente un ahorro recuperable ni un descuento contractual.</div></div>
+  <div class="tarjeta"><h2>Vehículos adicionales</h2>
+   <table style="margin-top:8px"><tbody>
+    <tr><td>Solicitados / Autorizados / Rechazados</td><td class="n">${X.solicitados} / ${X.autorizados} / ${X.rechazados}</td></tr>
+    <tr><td>Con observación vigente</td><td class="n">${X.observados}</td></tr>
+    <tr><td>Monto presentado</td><td class="n">${fmt$(X.montoPresentado)}</td></tr>
+    <tr><td>Monto respaldado</td><td class="n" style="color:var(--verde)"><b>${fmt$(X.montoRespaldado)}</b></td></tr>
+    <tr><td>Monto observado</td><td class="n" style="color:var(--rojo)">${fmt$(X.montoObservado)}</td></tr>
+   </tbody></table></div>`;
+}
+function vSolicitudes(){
+  if(!requirePermission('ver:control-contractual')) return vDenegado();
+  const pend=S.extras.filter(e=>['Solicitado','En revisión'].includes(e.estado));
+  const resto=S.extras.filter(e=>!['Solicitado','En revisión'].includes(e.estado));
+  return `<h1>Solicitudes de extras</h1><p class="sub">El sistema evalúa con datos; la decisión es tuya y queda registrada.</p>
+  ${pend.length?pend.map(e=>{const s=S.servicios.find(x=>x.id===e.servicioId);const D=demanda(s);const N=nivelJustificacion(s);
+   return `<div class="tarjeta"><div class="sub">${jornadaDe(s.salida).etiqueta}</div>
+    <h3>Extra #${e.id} — ${s.ruta} · ${fecha(s.salida)} ${hora(s.salida)}</h3>
+    <table style="margin-top:8px"><tbody>
+     <tr><td>Demanda registrada</td><td class="n"><b>${D.solicitudes}</b></td></tr>
+     <tr><td>Capacidad base</td><td class="n">${D.capacidadBase}</td></tr>
+     <tr><td>En lista de espera</td><td class="n"><b>${D.espera}</b></td></tr>
+     <tr><td>Déficit</td><td class="n">${D.deficit}</td></tr>
+     <tr><td>Capacidad propuesta</td><td class="n">+${e.capacidadExtra}</td></tr>
+     <tr><td>Nivel de justificación</td><td class="n"><span class="chip ${N.clase}">${N.nivel}</span></td></tr>
+     <tr><td>Motivo del contratista</td><td>${e.motivo}</td></tr>
+    </tbody></table>
+    <div class="acciones"><button class="ok" onclick="decide(${e.id},'Autorizado')">Autorizar</button>
+     <button class="no" onclick="decide(${e.id},'Rechazado')">Rechazar</button></div></div>`;}).join('')
+  :'<div class="vacio">Sin solicitudes pendientes.</div>'}
+  <h2 style="margin:14px 0 8px">Validación posterior</h2>
+  ${resto.map(e=>{const s=S.servicios.find(x=>x.id===e.servicioId);
+   return `<div class="tarjeta"><b>Extra #${e.id}</b> — ${s.ruta} · ${fecha(s.salida)} ${hora(s.salida)}
+    <div class="sub">Ocupación del extra: ${e.capacidadExtra?fmtN((e.pasajerosExtra/e.capacidadExtra)*100)+'%':'—'} (${e.pasajerosExtra}/${e.capacidadExtra})</div>
+    <div style="margin-top:5px"><span class="chip ${['Rechazado','Observado'].includes(e.estado)?'c-rojo':e.estado==='Conciliado'?'c-verde':'c-ambar'}">${e.estado}</span>
+     <span class="chip c-gris">${clasifica(e)}</span></div>
+    <div class="acciones">
+     ${['Utilizado','No utilizado','Observado'].includes(e.estado)?`<button class="sec" onclick="reclasifica(${e.id})">Reclasificar</button>`:''}
+     ${e.estado==='Observado'&&e.tipo==='operacional'&&e.emergenciaValidada!==true?`<button class="sec" onclick="validaEmergencia(${e.id})">Validar emergencia</button>`:''}
+     ${e.estado==='Observado'?`<button class="no" onclick="excluye(${e.id})">Excluir del pago</button>`:''}</div></div>`;}).join('')}`;
+}
+function decide(id,estado){
+  if(!requirePermission('autorizar:extra')){alert('No autorizado.');return;}
+  modal(`<h2>${estado==='Autorizado'?'Autorizar':'Rechazar'} extra #${id}</h2>
+  <label>Motivo (obligatorio)</label><textarea id="mDec" rows="2"></textarea>
+  <div class="acciones"><button class="${estado==='Autorizado'?'ok':'no'}" onclick="decideOk(${id},'${estado}')">Confirmar</button>
+   <button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function decideOk(id,estado){
+  const m=document.getElementById('mDec').value.trim(); if(!m){alert('El motivo es obligatorio.');return;}
+  const e=S.extras.find(x=>x.id===id);
+  if(e.estado==='Solicitado'){const r0=transicion(e,'En revisión','Paso a revisión');if(!r0.ok){alert(r0.error);return;}}
+  const r=transicion(e,estado,m); if(!r.ok){alert(r.error);return;}
+  if(estado==='Autorizado'){
+    e.autorizadoPor=S.sesion; e.fechaAutorizacion=AHORA.toISOString(); e.motivoAutorizacion=m;
+    const s=S.servicios.find(x=>x.id===e.servicioId);
+    const antes=demanda(s);
+    s.capacidadExtra+=e.capacidadExtra;
+    const prom=recalcular(S,s);
+    const desp=demanda(s);
+    audita('Capacidad ampliada por extra #'+id,
+      `${s.ruta} ${hora(s.salida)} — capacidad ${antes.capacidad} → ${desp.capacidad}; promovidos desde espera: ${prom.length}; cupos libres: ${desp.libres}`,
+      'capacidad '+antes.capacidad);
+  } else { e.motivoAutorizacion=m; }
+  guardar(); cierraModal(); render();
+}
+function reclasifica(id){
+  const e=S.extras.find(x=>x.id===id);
+  modal(`<h2>Reclasificar extra #${id}</h2><p class="sub">Clasificación del sistema: <b>${clasifica(e)}</b>.</p>
+  <label>Nueva clasificación</label><select id="mCla">${['Necesidad confirmada','Necesidad parcialmente confirmada','Vehículo adicional subutilizado','Vehículo adicional sin utilización','Servicio sin respaldo suficiente','Contingencia justificada'].map(c=>`<option>${c}</option>`).join('')}</select>
+  <label>Motivo</label><textarea id="mClaM" rows="2"></textarea>
+  <div class="acciones"><button onclick="reclasificaOk(${id})">Guardar</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function reclasificaOk(id){const m=document.getElementById('mClaM').value.trim();if(!m){alert('El motivo es obligatorio.');return;}
+  const e=S.extras.find(x=>x.id===id);const a=clasifica(e);e.reclasificacion=document.getElementById('mCla').value;
+  audita('Extra #'+id+' reclasificado a '+e.reclasificacion,m,a);guardar();cierraModal();render();}
+function validaEmergencia(id){if(!requirePermission('autorizar:extra'))return;const e=S.extras.find(x=>x.id===id);e.emergenciaValidada=true;
+  audita('Extra #'+id+' emergencia validada','Contingencia acreditada','sin validar');guardar();render();}
+function excluye(id){modal(`<h2>Excluir extra #${id}</h2><label>Motivo (obligatorio)</label><textarea id="mExc" rows="2"></textarea>
+  <div class="acciones"><button class="no" onclick="excluyeOk(${id})">Excluir y conciliar</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);}
+function excluyeOk(id){const m=document.getElementById('mExc').value.trim();if(!m){alert('El motivo es obligatorio.');return;}
+  const e=S.extras.find(x=>x.id===id);e.excluido=true;e.motivoExclusion=m;
+  const r=transicion(e,'Conciliado','Excluido del pago: '+m);if(!r.ok){alert(r.error);return;}cierraModal();render();}
+function vConciliacion(){
+  if(!requirePermission('conciliar:periodo')) return vDenegado();
+  const X=extrasResumen(); const P=periodo(); const cerrada=S.conciliaciones.find(c=>c.mes===MES);
+  const obs=S.extras.filter(e=>e.estado==='Observado').length;
+  const total=S.contrato.montoFijo+X.montoRespaldado;
+  return `<h1>Conciliación mensual</h1><p class="sub">Cierre económico: monto fijo del contrato + extras respaldados.</p>${ADV}
+  <div class="tarjeta"><div class="fila">
+    <div class="kpi">${fmt$(S.contrato.montoFijo)}<small>Monto fijo contractual</small></div>
+    <div class="kpi" style="color:var(--verde)">${fmt$(X.montoRespaldado)}<small>Extras respaldados</small></div>
+    <div class="kpi" style="color:var(--rojo)">${fmt$(X.montoObservado)}<small>Observados (${obs})</small></div>
+    <div class="kpi">${fmt$(total)}<small>Total del período</small></div></div>
+   <div class="acciones">${cerrada?`<span class="chip c-verde">Cerrado — ${cerrada.correlativo}</span><button onclick="verDoc('${cerrada.correlativo}')">Ver documento</button>`
+    :`<button class="amb" ${obs?'disabled':''} onclick="cierraPeriodo()">Cerrar período y emitir documento</button>${obs?'<span class="sub">Resuelve los '+obs+' observado(s) para cerrar.</span>':''}`}</div></div>
+  <div class="tarjeta"><h2>Extras del período</h2>
+   <table style="margin-top:8px"><thead><tr><th>Extra</th><th>Estado</th><th class="n">Tarifa</th><th class="n">Concilia</th></tr></thead><tbody>
+   ${S.extras.map(e=>{const s=S.servicios.find(x=>x.id===e.servicioId);
+     const entra=respaldado(e)&&!e.excluido&&e.estado!=='Rechazado';
+     return `<tr><td>#${e.id} · ${fecha(s.salida)} ${hora(s.salida)}</td><td>${e.estado}</td><td class="n">${fmt$(e.tarifa)}</td>
+      <td class="n">${e.estado==='Rechazado'?'—':entra?'<b style="color:var(--verde)">Sí</b>':'No'}</td></tr>`;}).join('')}
+   </tbody></table></div>`;
+}
+function cierraPeriodo(){
+  if(!requirePermission('conciliar:periodo')){alert('No autorizado.');return;}
+  const X=extrasResumen(); const n=S.conciliaciones.length+1;
+  const correlativo=S.contrato.codigoConciliacion+'-'+String(n).padStart(2,'0');
+  S.conciliaciones.push({mes:MES,correlativo,fecha:AHORA.toISOString(),fijo:S.contrato.montoFijo,
+    respaldado:X.montoRespaldado,observado:X.montoObservado,total:S.contrato.montoFijo+X.montoRespaldado,cerradoPor:S.sesion});
+  S.extras.forEach(e=>{if(['Utilizado','No utilizado'].includes(e.estado)&&respaldado(e))transicion(e,'Conciliado','Cierre del período');});
+  audita('Período '+MES+' cerrado — '+correlativo,'Total '+fmt$(S.contrato.montoFijo+X.montoRespaldado),'abierto');
+  guardar(); verDoc(correlativo);
+}
+function verDoc(correlativo){
+  const c=S.conciliaciones.find(x=>x.correlativo===correlativo); const P=periodo();
+  const resp=S.extras.filter(e=>respaldado(e)&&!e.excluido&&e.estado==='Conciliado');
+  modal(`<div class="doc"><div class="cab"><div class="correl">Conciliación ${c.correlativo}</div>
+   <span class="sub">Hotel Enjoy Antofagasta — Transportes del Desierto SpA · Período ${c.mes}</span></div>
+   <table><tbody>
+    <tr><td>Monto fijo del contrato</td><td class="n">${fmt$(c.fijo)}</td></tr>
+    <tr><td>Servicios ejecutados hasta la fecha</td><td class="n">${P.ejecutados}</td></tr>
+    ${resp.map(e=>`<tr><td>Extra #${e.id} — ${clasifica(e)}</td><td class="n">${fmt$(e.tarifa)}</td></tr>`).join('')}
+    <tr class="tot"><td>Total del período</td><td class="n">${fmt$(c.total)}</td></tr>
+   </tbody></table>
+   <p class="sub" style="margin-top:10px">Indicador calculado sobre el valor contractual mensual completo. Los indicadores de eficiencia no modifican el monto contractual salvo regla expresa. Documento digital — sin firmas.</p></div>
+   <div class="acciones"><button class="sec" onclick="cierraModal()">Cerrar</button></div>`);
+}
+function vContrato(){
+  if(!requirePermission('ver:control-contractual')) return vDenegado();
+  const c=S.contrato;
+  return `<h1>Contrato</h1><p class="sub">Fuente única de tarifas y condiciones.</p>
+  <div class="tarjeta"><table><tbody>
+   <tr><td>Mandante</td><td>Hotel Enjoy Antofagasta</td></tr>
+   <tr><td>Contratista</td><td>Transportes del Desierto SpA</td></tr>
+   <tr><td>Vigencia</td><td>${c.inicio} a ${c.termino} · <span class="chip c-verde">${c.estado}</span></td></tr>
+   <tr><td>Monto fijo mensual</td><td><b>${fmt$(c.montoFijo)}</b></td></tr>
+   <tr><td>Regla de devengo</td><td>${c.reglaDevengo||'No definida — los indicadores se calculan sobre el valor mensual completo'}</td></tr>
+   <tr><td>Origen de las salidas</td><td>${c.origen}</td></tr>
+   <tr><td>Rutas</td><td>${c.rutas.map(r=>'<b>'+r.nombre+'</b> — '+r.vans+' vans · ciclo '+r.ciclo+'<br><span class="sub">'+r.paradas.map(p=>p[0]).join(' → ')+'</span>').join('<br><br>')}</td></tr>
+   <tr><td>Frecuencia</td><td>${c.horarios}</td></tr>
+   <tr><td>Vehículos</td><td>${c.vehiculos} vans de ${c.capacidadVan} cupos</td></tr>
+   <tr><td>Extras</td><td>Tarifa contractual: <b>${fmt$(c.tarifaExtra)} por van</b></td></tr>
+   <tr><td>Reajuste</td><td>${c.reajuste}</td></tr>
+  </tbody></table></div>`;
+}
+function vAuditoria(){
+  const p=S.contexto==='CONTRATISTA'?'ver:trazabilidad-operacional':'ver:trazabilidad';
+  if(!requirePermission(p)) return vDenegado();
+  return `<h1>Trazabilidad</h1><p class="sub">Sesiones, decisiones, cambios de capacidad, accesos denegados — con usuario, rol, fecha y valor anterior.</p>
+  <div class="tarjeta">${S.auditoria.slice(0,70).map(a=>`<div class="aud ${a.denegado?'denegado':''}"><b>${fecha(a.fecha)} ${hora(a.fecha)}</b> · ${a.usuario} (${a.rol}) — ${a.accion}${a.detalle?': '+a.detalle:''}${a.anterior?' <span class="sub">(antes: '+a.anterior+')</span>':''}</div>`).join('')}</div>`;
+}
+/* ---------- ADMINISTRADOR ---------- */
+function vAdmin(){
+  if(!requirePermission('ver:administracion')) return vDenegado();
+  return `<h1>Usuarios y roles</h1><p class="sub">Los roles se asignan aquí; ningún usuario puede elegir el suyo.</p>
+  <div class="tarjeta"><table><thead><tr><th>Usuario</th><th>Organización</th><th>Roles asignados</th><th>Estado</th></tr></thead><tbody>
+  ${S.users.map(u=>{const org=S.organizations.find(o=>o.id===u.orgId);const as=S.role_assignments.filter(a=>a.userId===u.id);
+   return `<tr><td><b>${u.nombre}</b><br><span class="sub">${u.identificador} · ${u.email}</span></td><td>${org.nombre}</td>
+    <td>${as.map(a=>`<span class="chip ${a.activo?'c-verde':'c-gris'}">${a.rol}${a.activo?'':' (inactivo)'}</span>`).join(' ')||'<span class="sub">sin rol</span>'}
+     <div class="sub">${as.length?'asignado el '+as[0].fecha+' por '+(S.users.find(x=>x.id===as[0].asignadoPor)||{}).nombre:''}</div></td>
+    <td><button class="sec" onclick="toggleUsuario(${u.id})">${u.activo?'Desactivar':'Activar'}</button></td></tr>`;}).join('')}
+  </tbody></table></div>`;
+}
+function toggleUsuario(uid){
+  if(!requirePermission('asignar:rol')){alert('No autorizado.');return;}
+  const u=S.users.find(x=>x.id===uid); const a=u.activo; u.activo=!a;
+  audita((u.activo?'Cuenta activada':'Cuenta desactivada'),u.nombre,''+a); guardar(); render();
+}
+function vEmpresas(){
+  if(!requirePermission('ver:administracion')) return vDenegado();
+  return `<h1>Empresas</h1><div class="tarjeta"><table><thead><tr><th>Organización</th><th>Tipo</th><th class="n">Usuarios</th></tr></thead><tbody>
+  ${S.organizations.map(o=>`<tr><td><b>${o.nombre}</b></td><td><span class="chip c-azul">${o.tipo}</span></td><td class="n">${S.users.filter(u=>u.orgId===o.id).length}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function modal(html){document.getElementById('modal').innerHTML=html;document.getElementById('velo').classList.add('abierto');}
+function cierraModal(){document.getElementById('velo').classList.remove('abierto');}
+document.getElementById('velo').addEventListener('click',e=>{if(e.target.id==='velo')cierraModal();});
+
+window.app={get S(){return S},requirePermission,demanda,nivelJustificacion,jornadaDe,recalcular,capacidadTotal,
+  respaldado,clasifica,transicion,periodo,extrasResumen,div,reservaAbierta,login,logout,irA,cambiarContexto,
+  reset:()=>{S=semilla();guardar();render();}};
+render();
+</script>
+</body>
+</html>

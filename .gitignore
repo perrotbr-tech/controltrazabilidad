@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+*.log
+09-plataforma/datos-reales/
