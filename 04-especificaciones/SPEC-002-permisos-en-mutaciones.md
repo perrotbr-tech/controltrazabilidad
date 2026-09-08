@@ -28,6 +28,7 @@ R2. `transicion(e, nuevo, motivo)` exige el permiso asociado al estado destino:
   - `En revisión`, `Autorizado`, `Rechazado`, `Observado` → `autorizar:extra` (MANDANTE)
   - `Despachado`, `Utilizado`, `No utilizado` → `operar:extra` (CONTRATISTA; permiso nuevo en `PERMISOS`)
   - `Conciliado` → `conciliar:periodo` (MANDANTE), salvo la subsanación: `subsana()` la ejecuta el CONTRATISTA con `registrar:evidencia` y solo si `respaldado(e)` es verdadero (comportamiento ya existente, ahora explícito).
+  - Precisión aplicada en la implementación (constructor, aceptada por el Supervisor): la excepción de subsanación vale únicamente para `Observado → Conciliado`; un `Utilizado` respaldado lo concilia el MANDANTE al cerrar el período, no el contratista desde consola.
 R3. `decideOk` exige `autorizar:extra`; `reclasifica`/`reclasificaOk` exigen `autorizar:extra`; `excluye`/`excluyeOk` exigen `conciliar:periodo`; `cambia` exige `operar:extra`.
 R4. `cierraPeriodo` se rechaza en la función (no solo en el botón) mientras exista un extra en estado `Observado`.
 R5. La interfaz existente sigue funcionando igual para cada rol: ninguna acción hoy disponible en pantalla deja de estar disponible.
