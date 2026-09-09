@@ -1,6 +1,6 @@
 # SPEC-008 — CI básico con GitHub Actions
 
-Estado: Verificada (validación local PASS; pendiente primer run en GitHub Actions del PR)
+Estado: Verificada (validación local PASS; GitHub Actions run 34312457250 success en PR #3)
 Propietario humano: Eduardo Perrot
 Origen: instrucción DevOps pre–Corte 1 / DEC-005 (infraestructura de verificación, no producto)
 

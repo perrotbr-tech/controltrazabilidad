@@ -18,7 +18,7 @@ DEC-001…DEC-013 conservadas. **DEC-014…DEC-031 aprobadas** el 2026-09-09 (ve
 - SPEC-004 y SPEC-005 creadas (borrador/en revisión documental); no duplican F3-002/004.
 - Criterios de aceptación Corte 1 redactados (`04-especificaciones/SPEC-CORTE-1-inscripcion-hibrida.md`).
 - Configurables vs invariantes: `06-gobernanza/configurables-vs-invariantes.md`.
-- **T-21 / SPEC-008**: CI GitHub Actions en cada PR (Node 22, `contents: read`, baseline+config+permisos, E2E Playwright 1.55.1). Validación local **PASS**. Sin secretos, sin deploy, **sin tocar `app/`**, **sin iniciar Corte 1**.
+- **T-21 / SPEC-008**: CI GitHub Actions en cada PR (Node 22, `contents: read`, baseline+config+permisos, E2E Playwright 1.55.1). Validación local **PASS**; remoto run 34312457250 **success** (checks 8s, e2e 33s). Sin secretos, sin deploy, **sin tocar `app/`**, **sin iniciar Corte 1**. PR Draft #3.
 - **No hay** backend, cuentas externas ni despliegue.
 
 ## Trabajo de esta sesión
