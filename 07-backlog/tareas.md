@@ -9,7 +9,7 @@
 | T-06 | S4 operación Enjoy | Datos/entrevistas pendientes | As-is, contrato anonimizado y variables confirmadas |
 | T-07 | S5 síntesis comprar/configurar/construir | Depende de evidencia | Recomendación con costos e incertidumbre |
 | T-08 | Extras/evidencia/cierre inmutable | Especificar tras flujo inicial | Cierre reproducible sin alteración histórica |
-| T-09 | SPEC-003 configuración operativa real (DEC-008: 15 cupos/van, 2 vans extra, cobro por van) | **Aprobada; en desarrollo** en `app/` con `scripts/check-config.cjs` | Parámetros en contrato, semilla regenerada, 9/9 + QA |
+| T-09 | SPEC-003 configuración operativa real (DEC-008: 15 cupos/van, 2 vans extra, cobro por van) | **Implementada y revisada** (15/15, QA sin bloqueantes); falta contraprueba manual del dueño. Pendiente menor: D-5, D-6, D-8 y tope por jornada | Parámetros en contrato, semilla regenerada, pruebas + QA |
 | T-11 | SPEC-004 reserva por sentido (ida/vuelta) y puntos de bajada/encuentro | Depende de la planilla anonimizada de trabajadores (`02-descubrimiento/`) | Puntos con densidad real, reserva por sentido, "24 viajes" reconciliado |
 | T-12 | Maestro de vehículos con capacidad real por patente (15–17) y habilitación TTEPRIV (H-002/H-011) | Especificar tras SPEC-003 | Extra valida vehículo habilitado |
 | T-10 | Huso horario: clasificación mensual por prefijo UTC vs America/Santiago; `reset` de demo sin permiso (QA D-3) | Pendiente de SPEC | Prueba que cruce medianoche y fin de mes |

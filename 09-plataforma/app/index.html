@@ -122,7 +122,7 @@ tr:last-child td{border-bottom:none}
    Copia de trabajo — SPEC-002 aplicada (permisos en todas las mutaciones).
    SPEC-003 aplicada (capacidad 15 por van, 2 vans extra).
    ========================================================================= */
-const KEY='trazabilidad_v2';
+const KEY='trazabilidad_v3';   // SPEC-003 (QA D-1): clave versionada; un estado guardado con la semilla anterior a SPEC-003 no debe cargarse
 const AHORA=new Date('2026-09-15T18:30:00');
 const MES='2026-09';
 const DEMO = !location.search.includes('prod=1');   // en producción: variable de entorno
@@ -209,7 +209,7 @@ function semilla(){
         if(d===12&&hh===6&&ri===0) n=20; // caso Rechazado: demanda (20) bajo los 30 cupos, sin justificación
         for(let k=0;k<n;k++){ rid++;
           const p=R.paradas[k%R.paradas.length];
-          S.reservas.push({id:rid,servicioId:sid,userId:((rid%300)+1),
+          S.reservas.push({id:rid,servicioId:sid,userId:((rid%299)+2),   // QA D-3: 2..300, nunca el userId 1 (Camila), que se asigna aparte
             nombre:'Trabajador '+String((rid%300)+1).padStart(3,'0'),
             parada:p[0],offset:p[1],creada:new Date(salida.getTime()-(6+k)*3600000).toISOString(),
             estado:'pendiente'});
@@ -236,12 +236,16 @@ function semilla(){
     estado:'Rechazado',solicitadoPor:2,fechaSolicitud:'2026-09-12T05:40:00',autorizadoPor:3,fechaAutorizacion:'2026-09-12T05:55:00',
     motivoAutorizacion:'Reservas (20) no superan los 30 cupos y sin contingencia acreditada',
     evidencia:{patente:false,salida:false,manifiesto:false},pasajerosExtra:0,reclasificacion:null}];
-  S.auditoria=[{fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Extra #1 autorizado',detalle:'Demanda sobre capacidad',anterior:'En revisión'}];
+  // QA D-2: el extra #1 fue autorizado y utilizado, por lo que su salida ya tiene la capacidad ampliada
+  { const s1=S.servicios.find(s=>s.id===S.extras[0].servicioId); s1.capacidadExtra=CAP; }
+  S.auditoria=[
+   {fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Capacidad ampliada por extra #1',detalle:'Ruta Norte 23:00 — capacidad 30 → 45',anterior:'capacidad 30'},
+   {fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Extra #1 autorizado',detalle:'Demanda sobre capacidad',anterior:'En revisión'}];
   recalcularTodo(S);
   return S;
 }
 let S=cargar();
-function cargar(){try{const g=localStorage.getItem(KEY);if(g){const o=JSON.parse(g);if(o&&o.servicios)return o;}}catch(e){}return semilla();}
+function cargar(){try{const g=localStorage.getItem(KEY);if(g){const o=JSON.parse(g);if(o&&o.servicios&&o.contrato&&o.contrato.vansExtraDisponibles)return o;}}catch(e){}return semilla();}   // QA D-1: rechaza estados sin la configuración de SPEC-003
 function guardar(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 /* ================== CAPACIDAD Y LISTA DE ESPERA ================== */
@@ -533,8 +537,8 @@ function creaSolicitud(sid){
   const razon=document.getElementById('mRazon')?document.getElementById('mRazon').value:null;
   if(!motivo){alert('El motivo es obligatorio.');return;}
   if(!N.auto&&!razon){alert('Debes indicar una razón operacional.');return;}
-  const vans=+document.getElementById('mVans').value||1;
-  if(vans<1||vans>S.contrato.vansExtraDisponibles){alert('Solo hay '+S.contrato.vansExtraDisponibles+' van(es) adicional(es) a disposición según contrato.');return;}   // SPEC-003 R6
+  const vans=Number(document.getElementById('mVans').value);   // QA D-4: sin valor por defecto silencioso
+  if(!Number.isInteger(vans)||vans<1||vans>S.contrato.vansExtraDisponibles){alert('Solo hay '+S.contrato.vansExtraDisponibles+' van(es) adicional(es) a disposición según contrato.');return;}   // SPEC-003 R6
   const id=Math.max(0,...S.extras.map(e=>e.id))+1;
   S.extras.push({id,servicioId:sid,motivo:(razon?razon+' — ':'')+motivo,tipo:N.auto?'cuantitativa':'operacional',
     vans,capacidadExtra:vans*S.contrato.capacidadVan,tarifa:S.contrato.tarifaExtra*vans,estado:'Solicitado',
@@ -616,7 +620,7 @@ function periodo(){
   const hasta=svcMes.filter(s=>s.ejecutado);
   const rsHasta=S.reservas.filter(r=>r.estado==='confirmada'&&hasta.some(s=>s.id===r.servicioId));
   const capHasta=hasta.reduce((a,s)=>a+capacidadTotal(s),0);
-  // proyección: el mes completo tiene 30 días × 24 salidas × 2 rutas
+  // proyección: el mes completo tiene 30 días × 8 salidas × 2 rutas (DEC-004)
   const svcMesCompleto=30*8*2; // 8 salidas/ruta (23:00–06:00) × 2 rutas × 30 días
   const factor=div(svcMesCompleto,hasta.length)||1;
   return {ejecutados:hasta.length,programados:svcMes.length,transportados:rsHasta.length,capacidad:capHasta,

@@ -50,5 +50,11 @@ Sin cambio: fijo separado del uso; extra con causal, autorización y evidencia; 
 - Ida y vuelta (SPEC-004) cambia el modelo de reserva; hasta entonces la app sigue mostrando solo la salida desde el hotel.
 - Planilla con datos personales: **no subir al repositorio sin anonimizar**.
 
+## Resultado (2026-09-08)
+- Implementada por `constructor` en `app/index.html`; revisada por `revisor-qa`: **sin defectos bloqueantes**. Corregidos por el Supervisor en la misma sesión: D-1 clave de `localStorage` versionada a `trazabilidad_v3` y `cargar()` rechaza estados sin la configuración nueva (AC-14); D-2 la salida del extra #1 sembrado tiene capacidad ampliada y auditoría coherente (AC-11); D-3 la semilla no reutiliza el userId de Camila (AC-12); D-4 R6 exige entero (AC-13); D-7 comentario de proyección (AC-15). AC-10 añadido para el extra #2 (REQ-011).
+- Registrados sin corregir: D-5 constantes "15–17" en textos del contrato (se resuelve con el maestro de vehículos, T-12); D-6 la fila "Capacidad propuesta" del modal no cambia al elegir 2 vans; D-8 rama muerta del perfil de demanda; R6 limita por solicitud, no por jornada (decisión de diseño pendiente: ¿tope de 2 vans por jornada?).
+- Pruebas: `check-config.cjs` 15/15, `check-permisos.cjs` 21/21, `check-baseline.cjs` PASS, baseline intacto.
+- Pendiente: contraprueba manual del dueño en navegador. **Importante:** por el cambio de clave, la app arranca limpia; si se desea borrar el estado antiguo del prototipo, se usa `app.reset()` en el baseline.
+
 ## 12. Aprobaciones
-Producto/Operación: Eduardo, DEC-008 (2026-09-08). Técnico: revisor-qa tras implementación (pendiente).
+Producto/Operación: Eduardo, DEC-008 (2026-09-08). Técnico: revisor-qa sin bloqueantes (2026-09-08). Verificación en navegador: pendiente del dueño.

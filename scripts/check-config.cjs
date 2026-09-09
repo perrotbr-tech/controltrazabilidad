@@ -65,6 +65,39 @@ caso('AC-07', 'Autorizar 1 van sobre una salida con espera: capacidad 30 → 45 
 caso('AC-08', 'Ningún texto del HTML menciona "4 cupos", "+4 cupos" ni "+4 (1 van)"', () =>
   !/4 cupos|\+4 cupos|\+4 \(1 van\)/.test(html));
 
+// ---- Casos añadidos tras la revisión QA de SPEC-003 ----
+caso('AC-10', 'Extra #2 sembrado: operacional, Observado, sin autorización, 15 cupos, no respaldado, demanda ≤ base (REQ-011)', () => {
+  const e2 = S().extras.find(e => e.id === 2); const s2 = S().servicios.find(s => s.id === e2.servicioId);
+  return e2.tipo === 'operacional' && e2.estado === 'Observado' && e2.autorizadoPor == null && e2.capacidadExtra === CAP
+    && !app.respaldado(e2) && app.clasifica(e2) === 'Servicio sin respaldo suficiente' && app.demanda(s2).solicitudes <= s2.capacidadBase;
+});
+caso('AC-11', 'Extra #1 sembrado: su salida tiene capacidad ampliada (45) y lista de espera 0 (QA D-2)', () => {
+  const e1 = S().extras.find(e => e.id === 1); const s1 = S().servicios.find(s => s.id === e1.servicioId);
+  return s1.capacidadExtra === CAP && app.demanda(s1).capacidad === 3 * CAP && app.demanda(s1).espera === 0;
+});
+caso('AC-12', 'Camila (userId 1): exactamente 3 reservas futuras, todas Ruta Norte, sin duplicados por salida (QA D-3)', () => {
+  const fut = S().reservas.filter(r => r.userId === 1 && !S().servicios.find(s => s.id === r.servicioId).ejecutado);
+  const ids = fut.map(r => r.servicioId);
+  return fut.length === 3 && fut.every(r => S().servicios.find(s => s.id === r.servicioId).rutaIdx === 0) && new Set(ids).size === 3;
+});
+caso('AC-13', 'R6 frontera: mVans "0", "1.5" y "abc" no crean extra (QA D-4)', () => {
+  app.login(2); const s = objetivo() || S().servicios.filter(x => !x.ejecutado && !S().extras.some(e => e.servicioId === x.id))[0];
+  const n = S().extras.length;
+  for (const v of ['0', '1.5', 'abc']) { CAMPOS.mVans = v; ctx.creaSolicitud(s.id); }
+  CAMPOS.mVans = '1';
+  return S().extras.length === n;
+});
+caso('AC-14', 'Estado guardado con la semilla antigua (4 cupos, clave v2) no se carga: la app arranca con la semilla nueva (QA D-1)', () => {
+  const viejo = JSON.stringify({ servicios: [{ id: 1 }], contrato: { capacidadVan: 4 } });
+  const ctx2 = { console, window: {}, location: { search: '' },
+    document: { getElementById() { return { innerHTML: '', value: '', addEventListener() {}, classList: { add() {}, remove() {} } }; } },
+    localStorage: { getItem(k) { return k === 'trazabilidad_v2' ? viejo : (k === 'trazabilidad_v3' ? viejo : null); }, setItem() {} }, alert() {} };
+  vm.createContext(ctx2); vm.runInContext(script, ctx2);
+  return ctx2.window.app.S.contrato.capacidadVan === CAP && ctx2.window.app.S.servicios.length > 1;
+});
+caso('AC-15', 'Comentario de proyección coherente con DEC-004 (sin "24 salidas") y proyección 30×8×2', () =>
+  !/24 salidas/.test(html) && S().contrato && app.periodo().proy.servicios === 480);
+
 const fallas = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'PASS ' : 'FAIL ') + r.id + ' — ' + r.d + (r.err ? ' [' + r.err + ']' : ''));
 console.log(`\nArchivo: ${path.relative(process.cwd(), archivo)} · ${resultados.length - fallas.length}/${resultados.length} casos correctos.`);

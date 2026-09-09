@@ -16,4 +16,14 @@ Entorno: contenedor remoto Linux, Node v22.22.2, TZ America/Santiago, sin paquet
 
 Nota: `check-baseline.cjs` lee solo el baseline; su PASS no dice nada sobre `app/` (observación del revisor-qa).
 
+# Verificación SPEC-003 — 2026-09-08 (tarde)
+| Comando | Archivo | Resultado |
+|---|---|---|
+| `node scripts/check-config.cjs` | app/index.html antes de implementar | FAIL 2/9 (reproducción) |
+| `node scripts/check-config.cjs` | app/index.html con SPEC-003 + correcciones QA | PASS 15/15, exit 0 |
+| `node scripts/check-permisos.cjs` | app/index.html | PASS 21/21 (SPEC-002 conservada) |
+| `node scripts/check-baseline.cjs` | prototipo-actual (intacto) | PASS |
+
+Contraprueba manual en navegador de SPEC-003: pendiente del dueño (perfiles contratista y mandante: solicitar 1 y 2 vans, autorizar, ver contrato).
+
 Alcance: JavaScript con DOM simulado. No acredita interfaz en navegador, E2E, autenticación real ni seguridad de servidor. Contraprueba manual de los cuatro perfiles en navegador: pendiente (R5 de SPEC-002).

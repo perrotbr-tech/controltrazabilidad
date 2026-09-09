@@ -31,12 +31,19 @@ DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC
 - Rama: sin pull request; el remoto no tiene rama principal, esta rama es el tronco.
 - Dato nuevo **V-16**: "24 viajes, 4 vans, cerca de 15 pasajeros" contradice la configuración del prototipo (4 cupos/van, 16 salidas). SPEC-003 en borrador con preguntas Q1–Q5; **el prototipo no se toca hasta precisar**.
 
+## Respuestas Q1–Q5 y SPEC-003 (2026-09-08, cierre de sesión)
+- DEC-008: capacidad 15–17 por van (15 garantizados, configurable), salidas cada hora 23–06 en ambos sentidos, 2 rutas con puntos por definir, 2 vans extra completas a disposición con cobro por van, planilla de trabajadores (a anonimizar).
+- SPEC-003 implementada en `app/` (constructor), revisada (revisor-qa, sin bloqueantes), correcciones QA aplicadas: clave `trazabilidad_v3`, semilla coherente, R6 estricta. Pruebas: check-config 15/15, check-permisos 21/21, baseline PASS.
+- Nuevas tareas: T-11 SPEC-004 reserva por sentido y puntos (depende de la planilla anonimizada, plantilla en `02-descubrimiento/`); T-12 maestro de vehículos con capacidad real por patente y habilitación TTEPRIV.
+- Cifra "24 viajes" sigue sin reconciliar; se revisará con la planilla.
+
 ## Prioridad de arranque (próxima sesión)
-1. Respuestas de Eduardo a Q1–Q5 de SPEC-003 (capacidad real y viajes) → implementar SPEC-003 en `app/` con constructor y revisor-qa.
-2. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
-3. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.
-4. T-10 huso horario y `reset` de demo; T-02 URLs primarias H-001/H-002/H-003.
-5. ADR-001 con opciones y costos concretos antes de cualquier backend (T-04).
+1. Contraprueba manual del dueño sobre `app/index.html` con SPEC-003 (contratista solicita 1 y 2 vans; mandante autoriza; vista Contrato).
+2. Planilla de trabajadores **anonimizada** según `02-descubrimiento/LEEME-planilla.md` → SPEC-004 (puntos de bajada y encuentro, reserva por sentido).
+3. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
+4. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.
+5. Decisión de diseño: ¿tope de 2 vans extra por jornada o por solicitud? (hoy por solicitud).
+6. T-10 huso horario; T-02 URLs primarias H-001/H-002/H-003; ADR-001 antes de cualquier backend.
 
 ## Estado técnico
 No hay backend implementado, autenticación real, base de datos o aislamiento multiempresa. La copia `app/` corrige autorización en el navegador; no es seguridad de producción. La migración requiere diseño y controles nuevos, no simplemente conectar el HTML a una API.
