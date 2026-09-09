@@ -11,7 +11,10 @@
 | T-08 | Extras/evidencia/cierre inmutable | Especificar tras flujo inicial | Cierre reproducible sin alteración histórica |
 | T-09 | SPEC-003 configuración operativa real (DEC-008: 15 cupos/van, 2 vans extra, cobro por van) | **Implementada y revisada** (15/15, QA sin bloqueantes); falta contraprueba manual del dueño. Pendiente menor: D-5, D-6, D-8 y tope por jornada | Parámetros en contrato, semilla regenerada, pruebas + QA |
 | T-11 | SPEC-004 reserva por sentido (ida/vuelta) y puntos de bajada/encuentro | Depende de la planilla anonimizada de trabajadores (`02-descubrimiento/`) | Puntos con densidad real, reserva por sentido, "24 viajes" reconciliado |
-| T-13 | SPEC-003b horario real del contratista (H-022: 7 salidas con minutos fijos, recogida 23:00 para ingreso 00:00) | Pendiente de SPEC; cambio de semilla y `check-baseline`/`check-config` | Semilla con horas reales, pruebas verdes |
+| T-13 | SPEC-003b horario y demanda reales | **Hecha y verificada** (16/16, E2E 12/12) | — |
+| T-15 | Revisión QA independiente de SPEC-003b (omitida por tokens) | Pendiente | Informe revisor-qa sin bloqueantes |
+| T-16 | SPEC-007 MVP móvil en línea: cortes 1–3 (PWA, login, datos compartidos, extras, conciliación PDF) | Depende de C1–C5 y DEC de proveedor/publicación | Cada corte con SPEC, prueba y QA |
+| T-17 | SPEC-006 posición de la van en ruta | Depende de A1–A5, DEC de datos y de T-16 corte 1 | AC de aislamiento y borrado de rastro |
 | T-14 | SPEC-005 extra ex post (DEC-009): solicitud al día siguiente con justificación, plazo, validación del mandante | Pendiente de SPEC; el prototipo ya tiene Observado → validar emergencia | Flujo completo con auditoría y prueba |
 | T-12 | Maestro de vehículos con capacidad real por patente (15–17) y habilitación TTEPRIV (H-002/H-011) | Especificar tras SPEC-003 | Extra valida vehículo habilitado |
 | T-10 | Huso horario: clasificación mensual por prefijo UTC vs America/Santiago; `reset` de demo sin permiso (QA D-3) | Pendiente de SPEC | Prueba que cruce medianoche y fin de mes |

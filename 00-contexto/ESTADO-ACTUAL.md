@@ -42,9 +42,17 @@ DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC
 ## Cierre de etapa parcial (2026-09-08, final)
 Ver `06-gobernanza/cierre-etapa-1.md`. Nuevas decisiones: DEC-009 extra ex post (madrugada sin autorizador; solicitud al día siguiente), DEC-010 SPEC-001 D1–D6 aprobadas, DEC-011 contacto AllRide autorizado. Evidencia nueva H-022: horario real del contratista 00:15, 01:35, 02:35, 03:35, 04:35, 05:35, 06:45 (7 salidas, no "cada hora en punto"); no aplicado aún a la semilla.
 
+## Avance posterior al cierre (misma fecha)
+- DEC-012 (4 vans, 15 por van), DEC-013 (tope 2 vans extra por jornada), V-18 cerrado (el contratista agrupa rutas).
+- **SPEC-003b implementada y verificada** en `app/`: 7 salidas reales, demanda real reescalada (H-023), extra #1 ex post de 2 vans (DEC-009), tope por jornada, proyección 420. Pruebas 16/16, 21/21, baseline PASS, E2E 12/12. Sin revisión QA independiente por restricción de tokens (T-15).
+- Etapa 2 preparada: `06-gobernanza/cuestionario-etapa-2.md` (responder en un mensaje), `SPEC-006-geolocalizacion-ruta.md` (van, no persona) y `SPEC-007-mvp-movil-en-linea.md` con ADR-001 en tres opciones (recomendada: Vercel + Supabase).
+
 ## Prioridad de arranque (próxima sesión)
-0. Leer `06-gobernanza/cierre-etapa-1.md` y seguir su orden: SPEC-003b (H-022), SPEC-005 (DEC-009), SPEC-004 (planilla), SPEC-001 completa, V-10, ADR-001.
-1. Observaciones del dueño tras la demo.
+0. Leer el cuestionario respondido; registrar las DEC que abre (proveedor, publicación, geolocalización de la van, datos ficticios en línea).
+1. SPEC-007 corte 1 (PWA + login + datos compartidos) con constructor y revisor-qa; T-15 revisión QA de SPEC-003b.
+2. SPEC-004 puntos de ruta con la planilla anonimizada (B1–B3); SPEC-005 extra ex post con plazo (D1–D2).
+3. SPEC-006 posición de la van sobre el backend del corte 1.
+4. Conciliación con PDF (D3) y cierre inmutable (T-08).
 2. Planilla de trabajadores **anonimizada** según `02-descubrimiento/LEEME-planilla.md` → SPEC-004 (puntos de bajada y encuentro, reserva por sentido).
 3. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
 4. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.

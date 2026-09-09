@@ -29,19 +29,20 @@ caso('AC-03', 'Hay salidas con lista de espera y salidas con capacidad disponibl
   const ds = S().servicios.map(s => app.demanda(s));
   return ds.some(d => d.espera > 0) && ds.some(d => d.libres > 0);
 });
-caso('AC-04', 'Ocho salidas por jornada y ruta, todas entre 23:00 y 06:00', () => {
+caso('AC-04', 'Siete salidas por jornada y ruta con el horario real (00:15 … 06:45) — SPEC-003b', () => {
   const counts = {}; for (const x of S().servicios) { const k = app.jornadaDe(x.salida).id + '-' + x.rutaIdx; counts[k] = (counts[k] || 0) + 1; }
-  return Object.values(counts).every(n => n === 8) && S().servicios.every(x => [23, 0, 1, 2, 3, 4, 5, 6].includes(new Date(x.salida).getHours()));
+  const HM = new Set(['0:15', '1:35', '2:35', '3:35', '4:35', '5:35', '6:45']);
+  return Object.values(counts).every(n => n === 7) && S().servicios.every(x => { const d = new Date(x.salida); return HM.has(d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0')); });
 });
-caso('AC-05', 'Extra #1: 1 van, capacidadExtra 15, Utilizado y respaldado; extra #3: Rechazado con demanda ≤ 30', () => {
+caso('AC-05', 'Extra #1: 2 vans ex post (DEC-009), capacidadExtra 30, Utilizado y respaldado; extra #3: Rechazado con demanda ≤ 30', () => {
   const e1 = S().extras.find(e => e.id === 1), e3 = S().extras.find(e => e.id === 3);
   const s3 = S().servicios.find(s => s.id === e3.servicioId);
-  return e1.vans === 1 && e1.capacidadExtra === CAP && e1.estado === 'Utilizado' && app.respaldado(e1)
+  return e1.vans === 2 && e1.capacidadExtra === 2 * CAP && e1.estado === 'Utilizado' && app.respaldado(e1) && /DEC-009/.test(e1.motivoAutorizacion)
     && e3.estado === 'Rechazado' && app.demanda(s3).solicitudes <= s3.capacidadBase;
 });
 // Solicitud de extra por el CONTRATISTA sobre una salida futura sin extra y con lista de espera
 app.login(2);
-const objetivo = () => S().servicios.filter(s => !s.ejecutado && !S().extras.some(e => e.servicioId === s.id) && app.demanda(s).espera > 0)
+const objetivo = () => S().servicios.filter(s => !s.ejecutado && !S().extras.some(e => e.servicioId === s.id && e.estado !== 'Rechazado') && app.demanda(s).espera > 0)
   .sort((a, b) => a.salida < b.salida ? -1 : 1)[0];
 caso('AC-06a', 'CONTRATISTA: solicitar 3 vans se rechaza (solo 2 disponibles)', () => {
   const s = objetivo(); const n = S().extras.length; CAMPOS.mVans = '3'; ctx.creaSolicitud(s.id); CAMPOS.mVans = '1';
@@ -71,9 +72,9 @@ caso('AC-10', 'Extra #2 sembrado: operacional, Observado, sin autorización, 15 
   return e2.tipo === 'operacional' && e2.estado === 'Observado' && e2.autorizadoPor == null && e2.capacidadExtra === CAP
     && !app.respaldado(e2) && app.clasifica(e2) === 'Servicio sin respaldo suficiente' && app.demanda(s2).solicitudes <= s2.capacidadBase;
 });
-caso('AC-11', 'Extra #1 sembrado: su salida tiene capacidad ampliada (45) y lista de espera 0 (QA D-2)', () => {
+caso('AC-11', 'Extra #1 sembrado: su salida tiene capacidad ampliada (60) y lista de espera 0 (QA D-2)', () => {
   const e1 = S().extras.find(e => e.id === 1); const s1 = S().servicios.find(s => s.id === e1.servicioId);
-  return s1.capacidadExtra === CAP && app.demanda(s1).capacidad === 3 * CAP && app.demanda(s1).espera === 0;
+  return s1.capacidadExtra === 2 * CAP && app.demanda(s1).capacidad === 4 * CAP && app.demanda(s1).espera === 0;
 });
 caso('AC-12', 'Camila (userId 1): exactamente 3 reservas futuras, todas Ruta Norte, sin duplicados por salida (QA D-3)', () => {
   const fut = S().reservas.filter(r => r.userId === 1 && !S().servicios.find(s => s.id === r.servicioId).ejecutado);
@@ -95,8 +96,18 @@ caso('AC-14', 'Estado guardado con la semilla antigua (4 cupos, clave v2) no se 
   vm.createContext(ctx2); vm.runInContext(script, ctx2);
   return ctx2.window.app.S.contrato.capacidadVan === CAP && ctx2.window.app.S.servicios.length > 1;
 });
-caso('AC-15', 'Comentario de proyección coherente con DEC-004 (sin "24 salidas") y proyección 30×8×2', () =>
-  !/24 salidas/.test(html) && S().contrato && app.periodo().proy.servicios === 480);
+caso('AC-15', 'Proyección mensual 30 × 7 salidas × 2 rutas = 420 (H-022)', () =>
+  !/24 salidas/.test(html) && app.periodo().proy.servicios === 420);
+caso('AC-16', 'R7 tope por jornada (DEC-013): con 1 van ya autorizada en la jornada, pedir 2 más se rechaza y 1 más se acepta', () => {
+  app.login(2);
+  const conExtra = S().extras.filter(e => e.estado === 'Autorizado').map(e => S().servicios.find(s => s.id === e.servicioId))[0];
+  const J = app.jornadaDe(conExtra.salida).id;
+  const otra = S().servicios.find(s => !s.ejecutado && s.id !== conExtra.id && app.jornadaDe(s.salida).id === J && !S().extras.some(e => e.servicioId === s.id && e.estado !== 'Rechazado'));
+  const n = S().extras.length;
+  CAMPOS.mVans = '2'; ctx.creaSolicitud(otra.id); const rechazada = S().extras.length === n;
+  CAMPOS.mVans = '1'; ctx.creaSolicitud(otra.id); const aceptada = S().extras.length === n + 1;
+  return rechazada && aceptada;
+});
 
 const fallas = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'PASS ' : 'FAIL ') + r.id + ' — ' + r.d + (r.err ? ' [' + r.err + ']' : ''));

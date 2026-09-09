@@ -120,7 +120,7 @@ tr:last-child td{border-bottom:none}
    migración a backend sea conectar, no rediseñar. La validación real de
    servidor pertenece a la fase 2 (ver aviso en la interfaz).
    Copia de trabajo — SPEC-002 aplicada (permisos en todas las mutaciones).
-   SPEC-003 aplicada (capacidad 15 por van, 2 vans extra).
+   SPEC-003 aplicada (capacidad 15 por van, 2 vans extra) · SPEC-003b: horario real 7 salidas, demanda real H-023, tope de extras por jornada.
    ========================================================================= */
 const KEY='trazabilidad_v3';   // SPEC-003 (QA D-1): clave versionada; un estado guardado con la semilla anterior a SPEC-003 no debe cargarse
 const AHORA=new Date('2026-09-15T18:30:00');
@@ -176,10 +176,11 @@ function semilla(){
      montoFijo:18500000, reglaDevengo:null,   // sin regla de devengo definida
      capacidadVan:15, vehiculos:4, vansExtraDisponibles:2, rutas:RUTAS,   // SPEC-003: 15 cupos garantizados por van; 2 vans extra completas a disposición
      origen:'Hotel Enjoy Antofagasta — Av. Angamos 01455',
-     frecuencias:'Salidas cada 1 hora desde el Enjoy; las vans recorren su ruta y regresan al hotel dentro del ciclo',
-     horarios:'Desde las 23:00 hasta las 06:00, cada 1 hora (8 salidas por jornada, por ruta — ventana operativa real del Enjoy) · ida (hotel → casas) y vuelta (casas → hotel) en cada ciclo',
+     frecuencias:'7 salidas por jornada desde el Enjoy según fin de turno; las vans recorren su ruta y regresan al hotel dentro del ciclo',
+     salidasPorJornada:7, salidas:[[0,15],[1,35],[2,35],[3,35],[4,35],[5,35],[6,45]],   // SPEC-003b (H-022): horario real del contratista
+     horarios:'Salidas a las 00:15, 01:35, 02:35, 03:35, 04:35, 05:35 y 06:45 (7 por jornada, por ruta — programación real del contratista); recogida cerca de las 23:00 para el ingreso de 00:00 · ida (hotel → casas) y vuelta (casas → hotel)',
      sentido:'Ida y vuelta en cada ciclo horario; puntos de bajada y de encuentro por definir con la planilla de trabajadores (SPEC-004)',
-     tiposVehiculo:'Van de pasajeros — 15 a 17 cupos por van (15 garantizados) · 2 vans por ruta', dotacion:300,
+     tiposVehiculo:'Van de pasajeros — 15 a 17 cupos por van (15 garantizados) · 4 vans en proyección, 2 por ruta', dotacion:394,
      reajuste:'IPC semestral (informativo — el monto reajustado se ingresa con trazabilidad)',
      extrasPermitidos:true, tarifaExtra:45000,
      requisitosExtra:'Demanda confirmada sobre los cupos de la salida, o contingencia operacional con evidencia',
@@ -187,26 +188,26 @@ function semilla(){
    servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[]};
 
   const CAP=S.contrato.capacidadVan;   // SPEC-003 REQ-010: única fuente de la capacidad por van
-  const perfil=(h,ri)=>{ if(h===23||h===6) return ri===0?33:27;
-    if(h===0) return ri===0?22:18;
-    if(h>=1&&h<=5) return ri===0?9:7; return ri===0?20:14; };
-  const HORAS_OPERATIVAS=[23,0,1,2,3,4,5,6]; // ventana real Enjoy: 23:00–06:00, 1 salida/hora
+  // SPEC-003b (H-023): demanda media por salida de la semana real 31-08/06-09 (personas, ambas rutas) y factor por día de la jornada
+  const BASE_SALIDA=[55,24,22,23,25,13,35];                 // 00:15 · 01:35 · 02:35 · 03:35 · 04:35 · 05:35 · 06:45
+  const FACTOR_DIA=[0.7,0.8,0.9,1.0,1.2,1.4,1.4];            // domingo … sábado (jornada = noche que empieza ese día)
+  const perfil=(idx,ri,dow)=>Math.round(BASE_SALIDA[idx]*FACTOR_DIA[dow]*(ri===0?0.6:0.4));
   let sid=0,rid=0;
-  for(let d=8;d<=16;d++){
-    for(const hh of HORAS_OPERATIVAS){
-      const salida=new Date(2026,8,d,hh,0,0);
-      if(salida<new Date(2026,8,8,23,0,0)) continue;
-      if(salida>new Date(2026,8,16,6,0,0)) continue;
+  for(let d=9;d<=16;d++){
+    S.contrato.salidas.forEach(([hh,mm],idx)=>{
+      const salida=new Date(2026,8,d,hh,mm,0);
+      const dow=new Date(2026,8,d-1).getDay();            // día en que empieza la jornada nocturna
+      if(salida>new Date(2026,8,16,7,0,0)) return;
       RUTAS.forEach((R,ri)=>{
         sid++;
         const cierre=new Date(salida.getTime()-CIERRE_MIN*60000);
         const svc={id:sid,rutaIdx:ri,ruta:R.nombre,salida:salida.toISOString(),cierre:cierre.toISOString(),
           capacidadBase:R.vans*CAP,capacidadExtra:0,vans:R.vans,ejecutado:salida<AHORA};
         S.servicios.push(svc);
-        let n=perfil(hh,ri);
-        if(d===10&&hh===23&&ri===0) n=38; // caso extra #1: 38 solicitudes / 30 cupos, extra autorizado y utilizado
-        if(d===15&&hh===23&&ri===0) n=34; // caso de prueba: salida futura con lista de espera (34/30), sin extra
-        if(d===12&&hh===6&&ri===0) n=20; // caso Rechazado: demanda (20) bajo los 30 cupos, sin justificación
+        let n=perfil(idx,ri,dow);
+        if(d===13&&idx===0&&ri===0) n=56; // caso extra #1: sábado 12 → 00:15, 56 solicitudes / 30 cupos (real: 93 personas); 2 vans extra ex post
+        if(d===16&&idx===0&&ri===0) n=34; // caso de prueba: salida futura con lista de espera (34/30), sin extra
+        if(d===12&&idx===5&&ri===0) n=11; // caso Rechazado: demanda (11) bajo los 30 cupos, sin justificación
         for(let k=0;k<n;k++){ rid++;
           const p=R.paradas[k%R.paradas.length];
           S.reservas.push({id:rid,servicioId:sid,userId:((rid%299)+2),   // QA D-3: 2..300, nunca el userId 1 (Camila), que se asigna aparte
@@ -215,32 +216,32 @@ function semilla(){
             estado:'pendiente'});
         }
       });
-    }
+    });
   }
   // las reservas de Camila (userId 1) en servicios futuros de Ruta Norte
   const futuroN=S.servicios.filter(s=>!s.ejecutado&&s.rutaIdx===0).slice(0,3);
   futuroN.forEach((s,i)=>{ const r=S.reservas.find(r=>r.servicioId===s.id); if(r){r.userId=1;r.nombre='Camila Fuentes';} });
   S.extras=[
-   {id:1,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===10&&dt(s.salida).getHours()===23).id,
-    motivo:'Reservas (38) superan los 30 cupos de la salida',tipo:'cuantitativa',vans:1,capacidadExtra:CAP,tarifa:45000,
-    estado:'Utilizado',solicitadoPor:2,fechaSolicitud:'2026-09-10T21:40:00',autorizadoPor:3,fechaAutorizacion:'2026-09-10T22:05:00',
-    motivoAutorizacion:'Demanda confirmada sobre capacidad',evidencia:{patente:true,salida:true,manifiesto:true},
-    pasajerosExtra:12,reclasificacion:null},
-   {id:2,servicioId:S.servicios.find(s=>s.rutaIdx===1&&dt(s.salida).getDate()===11&&dt(s.salida).getHours()===6).id,
+   {id:1,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===13&&dt(s.salida).getHours()===0).id,
+    motivo:'Reservas (56) superan los 30 cupos de la salida — servicio prestado de madrugada, gestión presentada al día siguiente (DEC-009)',tipo:'cuantitativa',vans:2,capacidadExtra:2*CAP,tarifa:90000,
+    estado:'Utilizado',solicitadoPor:2,fechaSolicitud:'2026-09-13T09:30:00',autorizadoPor:3,fechaAutorizacion:'2026-09-13T11:10:00',
+    motivoAutorizacion:'Validación ex post: demanda confirmada sobre capacidad (DEC-009)',evidencia:{patente:true,salida:true,manifiesto:true},
+    pasajerosExtra:26,reclasificacion:null},
+   {id:2,servicioId:S.servicios.find(s=>s.rutaIdx===1&&dt(s.salida).getDate()===11&&dt(s.salida).getHours()===6).id,   // 06:45
     motivo:'Falla mecánica de una van al iniciar el recorrido',tipo:'operacional',vans:1,capacidadExtra:CAP,tarifa:45000,
-    estado:'Observado',solicitadoPor:2,fechaSolicitud:'2026-09-11T06:12:00',autorizadoPor:null,fechaAutorizacion:null,
+    estado:'Observado',solicitadoPor:2,fechaSolicitud:'2026-09-11T06:50:00',autorizadoPor:null,fechaAutorizacion:null,
     motivoAutorizacion:null,evidencia:{patente:true,salida:false,manifiesto:false},pasajerosExtra:11,reclasificacion:null,
     observacion:'Sin autorización previa; emergencia pendiente de validación y evidencia incompleta'},
-   {id:3,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===12&&dt(s.salida).getHours()===6&&s.rutaIdx===0).id,
+   {id:3,servicioId:S.servicios.find(s=>s.rutaIdx===0&&dt(s.salida).getDate()===12&&dt(s.salida).getHours()===5).id,   // 05:35
     motivo:'Refuerzo preventivo por posible alta demanda',tipo:'cuantitativa',vans:1,capacidadExtra:CAP,tarifa:45000,
-    estado:'Rechazado',solicitadoPor:2,fechaSolicitud:'2026-09-12T05:40:00',autorizadoPor:3,fechaAutorizacion:'2026-09-12T05:55:00',
-    motivoAutorizacion:'Reservas (20) no superan los 30 cupos y sin contingencia acreditada',
+    estado:'Rechazado',solicitadoPor:2,fechaSolicitud:'2026-09-12T05:05:00',autorizadoPor:3,fechaAutorizacion:'2026-09-12T05:20:00',
+    motivoAutorizacion:'Reservas (11) no superan los 30 cupos y sin contingencia acreditada',
     evidencia:{patente:false,salida:false,manifiesto:false},pasajerosExtra:0,reclasificacion:null}];
   // QA D-2: el extra #1 fue autorizado y utilizado, por lo que su salida ya tiene la capacidad ampliada
-  { const s1=S.servicios.find(s=>s.id===S.extras[0].servicioId); s1.capacidadExtra=CAP; }
+  { const s1=S.servicios.find(s=>s.id===S.extras[0].servicioId); s1.capacidadExtra=S.extras[0].capacidadExtra; }
   S.auditoria=[
-   {fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Capacidad ampliada por extra #1',detalle:'Ruta Norte 23:00 — capacidad 30 → 45',anterior:'capacidad 30'},
-   {fecha:'2026-09-10T22:05:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Extra #1 autorizado',detalle:'Demanda sobre capacidad',anterior:'En revisión'}];
+   {fecha:'2026-09-13T11:10:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Capacidad ampliada por extra #1',detalle:'Ruta Norte 00:15 — capacidad 30 → 60',anterior:'capacidad 30'},
+   {fecha:'2026-09-13T11:10:00',usuario:'Patricia Molina',rol:'MANDANTE',accion:'Extra #1 validado ex post',detalle:'Servicio prestado de madrugada; gestión presentada al día siguiente (DEC-009)',anterior:'En revisión'}];
   recalcularTodo(S);
   return S;
 }
@@ -500,7 +501,7 @@ function vOperacion(){
 }
 function vExtras(){
   if(!requirePermission('ver:operacion')) return vDenegado();
-  const cand=S.servicios.filter(s=>!s.ejecutado&&!S.extras.some(e=>e.servicioId===s.id))
+  const cand=S.servicios.filter(s=>!s.ejecutado&&!S.extras.some(e=>e.servicioId===s.id&&e.estado!=='Rechazado'))   // un Rechazado no bloquea una nueva solicitud (nueva necesidad = nueva solicitud)
     .sort((a,b)=>a.salida<b.salida?-1:1).slice(0,14);
   return `<h1>Vehículos adicionales</h1><p class="sub">Se solicita una van completa (cupos según contrato) para una salida; hay ${S.contrato.vansExtraDisponibles} vans adicionales a disposición; se cobra por van, no por pasajero. El sistema muestra la justificación; la decisión es del mandante.</p>
   <div class="tarjeta" style="border-color:var(--ambar)"><h2>Solicitar van adicional</h2>
@@ -539,6 +540,10 @@ function creaSolicitud(sid){
   if(!N.auto&&!razon){alert('Debes indicar una razón operacional.');return;}
   const vans=Number(document.getElementById('mVans').value);   // QA D-4: sin valor por defecto silencioso
   if(!Number.isInteger(vans)||vans<1||vans>S.contrato.vansExtraDisponibles){alert('Solo hay '+S.contrato.vansExtraDisponibles+' van(es) adicional(es) a disposición según contrato.');return;}   // SPEC-003 R6
+  // SPEC-003b R7 (DEC-013): tope de vans extra por jornada nocturna, contando solicitudes no rechazadas
+  const J=jornadaDe(s.salida).id;
+  const usadas=S.extras.filter(e=>e.estado!=='Rechazado'&&jornadaDe(S.servicios.find(x=>x.id===e.servicioId).salida).id===J).reduce((a,e)=>a+e.vans,0);
+  if(usadas+vans>S.contrato.vansExtraDisponibles){alert('Tope por jornada: ya hay '+usadas+' van(es) extra solicitada(s) en esta jornada; el contrato permite '+S.contrato.vansExtraDisponibles+'.');return;}
   const id=Math.max(0,...S.extras.map(e=>e.id))+1;
   S.extras.push({id,servicioId:sid,motivo:(razon?razon+' — ':'')+motivo,tipo:N.auto?'cuantitativa':'operacional',
     vans,capacidadExtra:vans*S.contrato.capacidadVan,tarifa:S.contrato.tarifaExtra*vans,estado:'Solicitado',
@@ -620,8 +625,8 @@ function periodo(){
   const hasta=svcMes.filter(s=>s.ejecutado);
   const rsHasta=S.reservas.filter(r=>r.estado==='confirmada'&&hasta.some(s=>s.id===r.servicioId));
   const capHasta=hasta.reduce((a,s)=>a+capacidadTotal(s),0);
-  // proyección: el mes completo tiene 30 días × 8 salidas × 2 rutas (DEC-004)
-  const svcMesCompleto=30*8*2; // 8 salidas/ruta (23:00–06:00) × 2 rutas × 30 días
+  // proyección: el mes completo tiene 30 días × 7 salidas × 2 rutas (H-022, SPEC-003b)
+  const svcMesCompleto=30*S.contrato.salidasPorJornada*S.contrato.rutas.length;
   const factor=div(svcMesCompleto,hasta.length)||1;
   return {ejecutados:hasta.length,programados:svcMes.length,transportados:rsHasta.length,capacidad:capHasta,
     ocupacion:div(rsHasta.length,capHasta),cuposLibres:Math.max(capHasta-rsHasta.length,0),
