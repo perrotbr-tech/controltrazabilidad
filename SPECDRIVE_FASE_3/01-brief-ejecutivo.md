@@ -45,7 +45,8 @@ Adoptar un modelo híbrido:
 ## Hipótesis que deben validarse
 
 - La primera salida operacional es efectivamente 23:00.
-- Los turnos se publican con al menos 24 horas de anticipación.
+- Hipótesis de producto (no es la ventana de inscripción): los turnos se publican con al menos 24 horas de anticipación.
+- Ventana de inscripción vigente: **T−48h / T−2h** (DEC-015).
 - Existe un identificador interno estable para cada trabajador.
 - El contratista puede disponer de un teléfono por vehículo o despacho.
 - El tope contractual de dos vans extra aplica a toda la jornada y a ambas rutas.

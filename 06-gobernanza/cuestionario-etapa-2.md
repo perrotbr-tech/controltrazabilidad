@@ -6,10 +6,10 @@ Responde en un solo mensaje, con el número y una línea. Donde hay opción suge
 ## A. Geolocalización de ruta "estilo Uber" (SPEC-006)
 | # | Pregunta | Opción sugerida |
 |---|---|---|
-| A1 | ¿Qué se geolocaliza: la **van** (conductor, teléfono del contratista) o el **trabajador**? | Solo la van. Rastrear personas en continuo choca con la Ley 21.719 (H-001) y con el límite de producto ya decidido |
-| A2 | ¿Quién ve la posición de la van en vivo? | Trabajador con reserva confirmada en esa salida (solo su van); contratista y mandante ven todas |
-| A3 | ¿Qué se guarda después del viaje? | Solo eventos: salida del hotel, llegada a cada parada, fin de ruta, con hora y coordenada. No el rastro completo |
-| A4 | ¿Con qué se captura la posición? | GPS del teléfono del conductor desde la app móvil, al pulsar "Iniciar ruta" |
+| A1 | ¿Qué se geolocaliza: la **van** (dispositivo del contratista) o el **trabajador**? | Solo la van. Rastrear personas en continuo choca con la Ley 21.719 (H-001) y con el límite de producto ya decidido. **Cerrada por DEC-030/024.** |
+| A2 | ¿Quién ve la posición de la van en vivo? | Trabajador con reserva confirmada en esa salida (solo su van); contratista y mandante ven todas. **Cerrada por DEC-030.** |
+| A3 | ¿Qué se guarda después del viaje? | Solo eventos: salida del hotel, llegada a cada parada, fin de ruta, con hora y coordenada. No el rastro completo. **Cerrada por DEC-030.** |
+| A4 | ¿Con qué se captura la posición? | **Vigente (DEC-024):** GPS de la van gestionado por el operador contratista desde la app móvil, al pulsar "Iniciar ruta". ~~Opción sugerida histórica: "GPS del teléfono del conductor"~~ — **histórica/supersedida por DEC-024** (no crear rol usuario conductor). |
 | A5 | ¿Se necesita mapa con calles (proveedor externo) o basta un esquema con paradas y avance? | Para el MVP, mapa abierto sin cuenta ni costo (OpenStreetMap con Leaflet); se decide proveedor pago en G2 |
 
 ## B. Puntos de ruta (SPEC-004)

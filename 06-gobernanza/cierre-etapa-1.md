@@ -19,6 +19,8 @@ Compuerta abreviada bajo DEC-005. Aprobador: Eduardo Perrot. Supervisor: sesión
 - Puntos de bajada y encuentro por ruta dependen de la planilla anonimizada → SPEC-004.
 - Tope de 2 vans extra: por solicitud (pendiente decidir si por jornada).
 
+> **Nota 2026-09-09 — supersedida por DEC-025 (y DEC-013):** la regla vigente es **máximo 2 vans extra acumuladas por jornada completa**, entre todos los horarios, sentidos y sectores Norte/Sur. El texto “por solicitud” de esta línea es **histórico** del cierre de etapa 1 y no debe usarse como requisito actual.
+
 ## Guion de demo (5 minutos)
 1. **Login** — cuentas de demostración; el rol lo asigna la administración, no el usuario.
 2. **Camila (trabajador)** — "Mis traslados": salidas 23:00–06:00, capacidad 30 por salida, reserva o lista de espera. Cancela solo lo propio.

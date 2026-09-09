@@ -2,17 +2,17 @@
 
 ## 1. Unidad central: jornada operacional
 
-La jornada se identifica por la fecha local en que comienza a las 23:00. Todos los movimientos posteriores a medianoche y hasta el fin operacional configurado pertenecen a esa jornada.
+La jornada se identifica por la fecha local en que comienza su primera salida (T0). Todos los movimientos posteriores a medianoche y hasta el fin operacional configurado pertenecen a esa jornada.
 
-Parámetros iniciales:
+Parámetros (configurables por jornada; nunca fijos en código):
 
 - Zona horaria: America/Santiago.
-- Inicio: 23:00.
-- Apertura de inscripción: T−48h (DEC-015).
-- Bloqueo: T−2h, es decir 21:00 con T0=23:00.
-- Última salida: configurable; config operacional actual 06:45 (DEC-022 / H-022).
+- Primera salida (T0) actual: 23:00.
+- Apertura de inscripción: **48 horas** antes de T0 (DEC-015). Con T0=23:00 → abre a las 23:00.
+- Bloqueo: **2 horas** antes de T0. Con T0=23:00 → bloquea a las 21:00.
+- Última salida actual: 06:45 (DEC-022 / H-022); el término operacional es explícito y configurable.
 
-No usar una ventana técnica de 23:00 a 22:59 como definición de servicio. El término debe ser explícito y configurable.
+No usar una ventana técnica de 23:00 a 22:59 como definición de servicio.
 
 ## 2. Formación de la demanda
 
@@ -24,7 +24,7 @@ El motor crea una propuesta de traslado con horario, ruta y parada sugeridos.
 
 ### Paso 2: ventana flexible
 
-Entre T−24 y T−2 el trabajador puede:
+Entre T−48 y T−2 el trabajador puede:
 
 - confirmar la propuesta;
 - seleccionar otro horario permitido;
@@ -72,7 +72,7 @@ Una pantalla principal con próximo traslado propuesto, cuenta regresiva al cier
 
 ### Contratista
 
-Tablero por jornada con reloj hasta cierre, demanda por salida y ruta, manifiesto, vehículos, conductores, lista de espera, extras, despacho, abordaje, salida, término, contingencias y evidencias.
+Tablero por jornada con reloj hasta cierre, demanda por salida y ruta, manifiesto, vehículos, **datos de conductores como evidencia** (sin rol usuario), lista de espera, extras, despacho, abordaje, salida, término, contingencias y evidencias.
 
 ### Mandante
 

@@ -5,7 +5,7 @@
 | ID | Regla |
 |---|---|
 | RN-001 | Toda fecha operativa se calcula en America/Santiago, incluyendo horario de verano. |
-| RN-002 | La jornada comienza a las 23:00 y termina en una hora configurable posterior a la última salida. |
+| RN-002 | La jornada comienza en T0 (primera salida configurada; **valor actual 23:00**, configurable por jornada, DEC-022) y termina en una hora configurable posterior a la última salida (actual 06:45). |
 | RN-003 | La inscripción abre exactamente **48 horas** antes de T0 (configurable por jornada; DEC-015). |
 | RN-004 | El autoservicio se bloquea exactamente **2 horas** antes de T0. Para T0=23:00, bloquea a las 21:00. |
 | RN-005 | El servidor determina la hora; nunca el reloj del teléfono. |
@@ -29,7 +29,7 @@
 
 | ID | Regla |
 |---|---|
-| RN-020 | Después de las 21:00, toda mutación ordinaria del trabajador devuelve BLOQUEADO_POR_CIERRE. |
+| RN-020 | Tras el bloqueo (T−2h; **con config actual T0=23:00 equivale a las 21:00** America/Santiago), toda mutación ordinaria del trabajador devuelve BLOQUEADO_POR_CIERRE. La hora absoluta se deriva de T0 configurable (DEC-015). |
 | RN-021 | La excepción exige tipo, motivo, solicitante, fecha, autorizador y decisión. |
 | RN-022 | La excepción aprobada no crea capacidad. Si no hay cupo, queda en espera. |
 | RN-023 | Las excepciones ex post se registran separadas del manifiesto original y muestran antes/después. |

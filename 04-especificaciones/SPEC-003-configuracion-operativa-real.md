@@ -15,11 +15,11 @@ El prototipo codifica vans de 4 cupos, extra de +4 y una demanda sembrada de 3 a
 | Dato | Valor declarado | Lectura del Supervisor |
 |---|---|---|
 | Capacidad por van | entre 15 y 17 pasajeros por salida | Se usa **15 como cupo garantizado** por salida; la capacidad exacta por vehículo pasará al maestro de vehículos (T-08, H-002). Configurable |
-| Ventana | 23:00 a 06:00, una salida cada hora | Confirma DEC-004: 8 salidas por ruta por noche |
+| Ventana | 23:00 a 06:00, una salida cada hora | **Histórica/supersedida por DEC-022 + SPEC-003b / H-022:** config actual = 7 salidas (00:15…06:45), T0=23:00. DEC-004 queda como evidencia declarada previa, no como AC vigente |
 | Sentido | del hotel a las casas y de las casas al hotel | Cada ciclo horario tiene ida y vuelta. **El modelo de reserva por sentido queda para SPEC-004**, porque depende de los puntos |
 | Rutas y puntos | siguen las 2 rutas; hay que definir dónde se bajan (ida) y dónde se les encuentra (vuelta) | Puntos actuales son propuesta del Supervisor sin respaldo (PR-06); se definirán con la planilla de trabajadores anonimizada |
-| Extras | 2 vans que quedan a disposición completas; se cobra por van, no por pasajero | `vansExtraDisponibles = 2`; un extra siempre es una van completa; tarifa por van (ya así) |
-| "24 viajes de 4 vans" (mensaje anterior) | no reconciliado con 8 salidas × 2 rutas = 16 salidas | Se conserva como nota; no se usa en la semilla. Puede corresponder a viajes de ida y vuelta contados por separado. Pendiente de la planilla |
+| Extras | 2 vans que quedan a disposición completas; se cobra por van, no por pasajero | `vansExtraDisponibles = 2`; un extra siempre es una van completa; tarifa por van (ya así). Tope acumulado por **jornada** (DEC-013/025), no solo por solicitud |
+| "24 viajes de 4 vans" (mensaje anterior) | no reconciliado con el modelo de salidas | Nota anecdótica; **no** usa 8×2=16 como regla vigente. Config actual: 7 salidas × 2 rutas (DEC-022) |
 | Planilla | con datos de trabajadores, no del prestador | Debe entregarse **anonimizada** (sin nombre, RUT, teléfono ni dirección exacta): Ley 21.719 (H-001) y regla CLAUDE.md "no datos personales reales en Git". Plantilla en `02-descubrimiento/plantilla-planilla-trabajadores.csv` |
 
 ## 3. Alcance
@@ -43,7 +43,7 @@ Sin cambio: fijo separado del uso; extra con causal, autorización y evidencia; 
 - AC-01 `contrato.capacidadVan === 15` y `contrato.vansExtraDisponibles === 2`.
 - AC-02 Toda salida sembrada tiene `capacidadBase === vans_de_su_ruta × 15` (30 en ambas rutas).
 - AC-03 Existe al menos una salida sembrada con lista de espera (solicitudes > 30) y al menos una con capacidad disponible.
-- AC-04 Sigue habiendo 8 salidas por jornada y ruta, todas entre 23:00 y 06:00.
+- AC-04 ~~Sigue habiendo 8 salidas por jornada y ruta, todas entre 23:00 y 06:00~~ **DEROGADO** — ver SPEC-003b AC-04 (7 salidas H-022) y DEC-022.
 - AC-05 Extra #1 sembrado: `capacidadExtra === 15`, estado Utilizado, respaldado; extra #3: Rechazado con demanda ≤ 30.
 - AC-06 `creaSolicitud` con 3 vans es rechazada (no crea extra); con 2 vans crea extra con `capacidadExtra === 30` y `tarifa === 2 × tarifaExtra`.
 - AC-07 Al autorizar un extra de 1 van sobre una salida con 38 solicitudes, la capacidad pasa de 30 a 45 y la lista de espera queda en 0.
@@ -58,7 +58,7 @@ Sin cambio: fijo separado del uso; extra con causal, autorización y evidencia; 
 
 ## Resultado (2026-09-08)
 - Implementada por `constructor` en `app/index.html`; revisada por `revisor-qa`: **sin defectos bloqueantes**. Corregidos por el Supervisor en la misma sesión: D-1 clave de `localStorage` versionada a `trazabilidad_v3` y `cargar()` rechaza estados sin la configuración nueva (AC-14); D-2 la salida del extra #1 sembrado tiene capacidad ampliada y auditoría coherente (AC-11); D-3 la semilla no reutiliza el userId de Camila (AC-12); D-4 R6 exige entero (AC-13); D-7 comentario de proyección (AC-15). AC-10 añadido para el extra #2 (REQ-011).
-- Registrados sin corregir: D-5 constantes "15–17" en textos del contrato (se resuelve con el maestro de vehículos, T-12); D-6 la fila "Capacidad propuesta" del modal no cambia al elegir 2 vans; D-8 rama muerta del perfil de demanda; R6 limita por solicitud, no por jornada (decisión de diseño pendiente: ¿tope de 2 vans por jornada?).
+- Registrados sin corregir al cierre SPEC-003: D-5 constantes "15–17" en textos del contrato (T-12); D-6 la fila "Capacidad propuesta" del modal no cambia al elegir 2 vans; D-8 rama muerta del perfil de demanda. ~~R6 limita por solicitud, no por jornada (decisión pendiente)~~ → **supersedida por DEC-013/025**: tope de 2 vans extra **por jornada completa** (R7 en SPEC-003b).
 - Pruebas: `check-config.cjs` 15/15, `check-permisos.cjs` 21/21, `check-baseline.cjs` PASS, baseline intacto.
 - Pendiente: contraprueba manual del dueño en navegador. **Importante:** por el cambio de clave, la app arranca limpia; si se desea borrar el estado antiguo del prototipo, se usa `app.reset()` en el baseline.
 

@@ -26,7 +26,7 @@ Consulta: 2026-09-09.
 ## Preguntas para una demo de proveedor
 
 - ¿Cómo reciben y versionan cambios frecuentes de turno?
-- ¿Pueden configurar apertura T−24 y bloqueo T−2 por contrato?
+- ¿Pueden configurar apertura T−48 y bloqueo T−2 por contrato? *(la pregunta antigua con T−24 quedó **histórica/supersedida por DEC-015**; usar T−48 en demos y scripts actuales)*
 - ¿Qué ocurre si el turno cambia después del cierre?
 - ¿Cómo conservan manifiesto original y anexo?
 - ¿Cómo previenen doble reserva y sobrecupo concurrente?

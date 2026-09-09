@@ -20,6 +20,6 @@
 | T-10 | Huso America/Santiago | **Pendiente**; requerido por salvedad T-15 y AC Corte 1 (reloj controlado) | Prueba cruce medianoche / DST |
 | T-18 | E2E específica SPEC-003b | Nueva: 7 salidas, horario H-022, proyección referencial bajo config | Script + capturas |
 | T-19 | Ficha pre-implementación DEC-021 | Costo, región, seguridad, respaldo, migración; sin crear cuentas | Aprobación humana de construcción |
-| T-20 | Actualizar SPECDRIVE_FASE_3 RN/SPEC-F3-001 a T−48h | Alinear paquete F3 con DEC-015 (apertura 48 h) | Docs F3 coherentes |
+| T-20 | Alinear SPECDRIVE_FASE_3 a T−48h / DEC-024 | **Hecha en corrección QA 2026-09-09** (LEEME, modelo, flujos, F3-005, fuentes, plan-agentes, investigación) | Docs F3 coherentes con DEC-015/024 |
 
 El alcance actual no incluye módulos mineros literales, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo. **No implementar Corte 1 sin aprobación explícita del dueño.**

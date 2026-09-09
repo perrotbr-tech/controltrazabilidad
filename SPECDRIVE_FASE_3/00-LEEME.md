@@ -10,21 +10,23 @@ Transformar la demo en un MVP móvil multiusuario cuyo centro no sea comprar un 
 
 1. El sistema precarga una propuesta desde la nómina o turno.
 2. El trabajador confirma o cambia horario, sentido y parada.
-3. Cada jornada abre en T−24h y se bloquea en T−2h.
+3. Cada jornada abre en T−48h y se bloquea en T−2h (DEC-015; configurables por jornada).
 4. El contratista despacha vehículos, controla abordajes y aporta evidencia.
 5. El mandante supervisa excepciones, extras, niveles de servicio y conciliación.
 6. El sistema recomienda acciones, pero nunca aprueba extras ni cambia pagos automáticamente.
 
-## 2. Regla fija de la jornada
+## 2. Regla canónica de la jornada (DEC-015 / DEC-022)
 
-- T0: primera salida operacional (configurables; actual 23:00), zona America/Santiago.
-- Apertura: **T−48h** (DEC-015; actual: 23:00 dos días antes relativos a T0).
-- Cierre ordinario: **T−2h** (actual: 21:00 del día de T0).
-- Ventana efectiva de autoatención: 46 horas con la config actual.
+- Apertura: **48 horas** antes de la primera salida de la jornada.
+- Bloqueo: **2 horas** antes de la primera salida.
+- Configuración operacional actual: primera salida **23:00**; apertura 48 h antes a las **23:00**; bloqueo a las **21:00**.
+- Zona: America/Santiago; reloj del servidor.
+- T0, catálogo de salidas, apertura/bloqueo y flota son **configurables por jornada**, nunca fijos en código.
+- Ventana efectiva de autoatención con la config actual: 46 horas.
 - Después del bloqueo el trabajador no puede inscribirse, cancelar ni cambiar por autoservicio.
 - Los servicios de madrugada pertenecen a la fecha operacional iniciada en T0.
 - Un cambio posterior al cierre es una excepción, no una reserva ordinaria.
-- Catálogo de salidas y proyección: configuración (DEC-022); no hardcodear 8/480 ni 7/420 como invariantes.
+- Proyección de servicios: fórmula derivada de la configuración (no hardcodear 8/480 ni 7/420 como invariantes).
 
 ## 3. Orden obligatorio de lectura para Claude Code
 
