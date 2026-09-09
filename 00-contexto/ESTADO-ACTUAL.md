@@ -39,8 +39,12 @@ DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC
 
 - Contraprueba de SPEC-003: el dueño no pudo abrir el archivo (GitHub muestra el código). El Supervisor ejecutó una contraprueba E2E en Chromium real (12/12, `scripts/e2e-contraprueba.js`, capturas en `08-validacion/capturas-e2e/`) y publicó la app como página privada para que el dueño la recorra desde el navegador. Cómo abrir localmente: descomprimir el zip y hacer doble clic en `09-plataforma/app/index.html`; en GitHub, el botón "Raw" o "Download" descarga el archivo.
 
+## Cierre de etapa parcial (2026-09-08, final)
+Ver `06-gobernanza/cierre-etapa-1.md`. Nuevas decisiones: DEC-009 extra ex post (madrugada sin autorizador; solicitud al día siguiente), DEC-010 SPEC-001 D1–D6 aprobadas, DEC-011 contacto AllRide autorizado. Evidencia nueva H-022: horario real del contratista 00:15, 01:35, 02:35, 03:35, 04:35, 05:35, 06:45 (7 salidas, no "cada hora en punto"); no aplicado aún a la semilla.
+
 ## Prioridad de arranque (próxima sesión)
-1. Recorrido del dueño sobre la app publicada (o el archivo local) y sus observaciones de experiencia.
+0. Leer `06-gobernanza/cierre-etapa-1.md` y seguir su orden: SPEC-003b (H-022), SPEC-005 (DEC-009), SPEC-004 (planilla), SPEC-001 completa, V-10, ADR-001.
+1. Observaciones del dueño tras la demo.
 2. Planilla de trabajadores **anonimizada** según `02-descubrimiento/LEEME-planilla.md` → SPEC-004 (puntos de bajada y encuentro, reserva por sentido).
 3. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
 4. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.

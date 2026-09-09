@@ -37,4 +37,4 @@ Ninguna de estas decisiones se toma aquí; corresponden a Eduardo (T-03). Cada u
 
 Dependencias: ADR-001 (autenticación y aislamiento en servidor), V-08 (responsable/encargado de datos), PR-06 (paradas reales para que el trabajador elija su punto), V-16/SPEC-003 (capacidad real por van condiciona cupos y lista de espera).
 
-Estado de las decisiones al 2026-09-08: D5 decidida (DEC-006). D1, D2, D3, D4 y D6 siguen pendientes; el Supervisor propone aprobar las opciones sugeridas de la tabla con un "sí" explícito del dueño o corregir la que no corresponda. No se avanza a "En revisión" sin esa respuesta.
+Estado de las decisiones al 2026-09-08 (cierre): **D1–D6 decididas** (DEC-006 y DEC-010: opciones sugeridas aprobadas por el dueño). SPEC-001 pasa a **En revisión**; la próxima sesión la completa con la plantilla de 12 secciones y la lleva a construcción simulada en `app/` (T-05, corte vertical con marca "simulación").

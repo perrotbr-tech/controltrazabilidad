@@ -11,6 +11,8 @@
 | T-08 | Extras/evidencia/cierre inmutable | Especificar tras flujo inicial | Cierre reproducible sin alteración histórica |
 | T-09 | SPEC-003 configuración operativa real (DEC-008: 15 cupos/van, 2 vans extra, cobro por van) | **Implementada y revisada** (15/15, QA sin bloqueantes); falta contraprueba manual del dueño. Pendiente menor: D-5, D-6, D-8 y tope por jornada | Parámetros en contrato, semilla regenerada, pruebas + QA |
 | T-11 | SPEC-004 reserva por sentido (ida/vuelta) y puntos de bajada/encuentro | Depende de la planilla anonimizada de trabajadores (`02-descubrimiento/`) | Puntos con densidad real, reserva por sentido, "24 viajes" reconciliado |
+| T-13 | SPEC-003b horario real del contratista (H-022: 7 salidas con minutos fijos, recogida 23:00 para ingreso 00:00) | Pendiente de SPEC; cambio de semilla y `check-baseline`/`check-config` | Semilla con horas reales, pruebas verdes |
+| T-14 | SPEC-005 extra ex post (DEC-009): solicitud al día siguiente con justificación, plazo, validación del mandante | Pendiente de SPEC; el prototipo ya tiene Observado → validar emergencia | Flujo completo con auditoría y prueba |
 | T-12 | Maestro de vehículos con capacidad real por patente (15–17) y habilitación TTEPRIV (H-002/H-011) | Especificar tras SPEC-003 | Extra valida vehículo habilitado |
 | T-10 | Huso horario: clasificación mensual por prefijo UTC vs America/Santiago; `reset` de demo sin permiso (QA D-3) | Pendiente de SPEC | Prueba que cruce medianoche y fin de mes |
 El alcance actual no incluye módulos mineros, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo.
