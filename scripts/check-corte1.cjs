@@ -271,6 +271,233 @@ caso('C1-23-CONFIRM', 'Confirmación sobre salida 23:00 (AC-C1-20)', () => {
   return r.ok && p.estado === 'CONFIRMADO' && p.servicioId === svc.id;
 });
 
+/* ================== DEC-033 / Bugbot PR #4 ================== */
+function resetServicioLimpio(svc) {
+  S().reservas = S().reservas.filter(r => r.servicioId !== svc.id);
+  return svc;
+}
+
+caso('C1-033-LIBERA', 'Rechazo de CONFIRMADO libera exactamente un cupo (AC-033-01)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svc = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 23));
+  const id = Math.max(0, ...S().reservas.map(r => r.id)) + 1;
+  S().reservas.push({
+    id, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T10:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  });
+  const antes = app.demanda(svc).confirmadas;
+  const r = app.rechazarInscripcion(id);
+  const desp = app.demanda(svc);
+  return r.ok && S().reservas.find(x => x.id === id).estado === 'DECLINADO'
+    && !app.ocupaCupo(S().reservas.find(x => x.id === id))
+    && desp.confirmadas === antes - 1
+    && desp.libres === app.capacidadTotal(svc) - desp.confirmadas;
+});
+
+caso('C1-033-ESPERA-NO-CUPO', 'EN_ESPERA no ocupa capacidad confirmada (AC-033-02)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svc = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 0));
+  const base = Math.max(0, ...S().reservas.map(r => r.id));
+  S().reservas.push({
+    id: base + 1, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Plaza Colón — Centro', offset: 15,
+    creada: '2026-09-14T09:00:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  });
+  const D = app.demanda(svc);
+  return D.confirmadas === 0 && D.espera === 1 && D.libres === app.capacidadTotal(svc);
+});
+
+caso('C1-033-FIFO', 'Promoción FIFO al rechazar CONFIRMADO (AC-033-03)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svc = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 1));
+  svc.capacidadBase = 1; svc.capacidadExtra = 0;
+  const base = Math.max(0, ...S().reservas.map(r => r.id));
+  const conf = {
+    id: base + 1, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T08:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  const espVieja = {
+    id: base + 2, servicioId: svc.id, userId: 2, nombre: 'Rodrigo Salas', parada: 'Plaza Colón — Centro', offset: 15,
+    creada: '2026-09-14T08:10:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  const espNueva = {
+    id: base + 3, servicioId: svc.id, userId: 3, nombre: 'Patricia Molina', parada: 'Terminal de Buses', offset: 22,
+    creada: '2026-09-14T08:20:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  S().reservas.push(conf, espVieja, espNueva);
+  // login del titular confirmado
+  app.login(1);
+  const r = app.rechazarInscripcion(conf.id);
+  return r.ok && conf.estado === 'DECLINADO'
+    && espVieja.estado === 'CONFIRMADO'
+    && espNueva.estado === 'EN_ESPERA'
+    && app.demanda(svc).confirmadas === 1
+    && app.demanda(svc).espera === 1
+    && (r.promovidos || []).some(p => p.id === espVieja.id);
+});
+
+caso('C1-033-MISMA-SALIDA', 'Promoción solo en misma salida/ruta/sentido (AC-033-04)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svcA = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 2));
+  const svcB = S().servicios.find(s => !s.ejecutado && s.rutaIdx === 1 && new Date(s.salida).getHours() === 2
+    && app.jornadaDe(s.salida).id === app.jornadaDe(svcA.salida).id);
+  if (!svcB) throw new Error('sin pareja Sur');
+  S().reservas = S().reservas.filter(r => r.servicioId !== svcB.id);
+  svcA.capacidadBase = 1; svcA.capacidadExtra = 0;
+  const base = Math.max(0, ...S().reservas.map(r => r.id));
+  const conf = {
+    id: base + 1, servicioId: svcA.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T07:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svcA.salida).id
+  };
+  const espOtra = {
+    id: base + 2, servicioId: svcB.id, userId: 2, nombre: 'Rodrigo Salas', parada: 'Jardines del Sur', offset: 14,
+    creada: '2026-09-14T07:05:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svcB.salida).id
+  };
+  S().reservas.push(conf, espOtra);
+  app.login(1);
+  const r = app.rechazarInscripcion(conf.id);
+  return r.ok && conf.estado === 'DECLINADO'
+    && espOtra.estado === 'EN_ESPERA'
+    && app.demanda(svcA).confirmadas === 0
+    && !(r.promovidos || []).length;
+});
+
+caso('C1-033-SIN-CAP', 'Sin promoción si no hay capacidad liberada (AC-033-05)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  const svc = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 3));
+  svc.capacidadBase = 1; svc.capacidadExtra = 0;
+  const base = Math.max(0, ...S().reservas.map(r => r.id));
+  const conf = {
+    id: base + 1, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T06:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  const esp = {
+    id: base + 2, servicioId: svc.id, userId: 2, nombre: 'Rodrigo Salas', parada: 'Plaza Colón — Centro', offset: 15,
+    creada: '2026-09-14T06:10:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  S().reservas.push(conf, esp);
+  // Quien está en espera declina: no libera cupo confirmado → no promoción del otro
+  app.login(2); // Rodrigo es CONTRATISTA en semilla — usar mutación directa vía usuario con permiso
+  // Reasignar temporalmente: crear user trabajador ficticio en reserva userId 2 no tiene rol TRABAJADOR.
+  // Usamos Camila declinando EN_ESPERA propia:
+  S().reservas = S().reservas.filter(r => r.id !== conf.id && r.id !== esp.id);
+  const espCamila = {
+    id: base + 3, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Plaza Colón — Centro', offset: 15,
+    creada: '2026-09-14T06:10:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  const confOtro = {
+    id: base + 4, servicioId: svc.id, userId: 99, nombre: 'Otro', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T06:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  S().reservas.push(confOtro, espCamila);
+  app.login(1);
+  const r = app.rechazarInscripcion(espCamila.id);
+  return r.ok && espCamila.estado === 'DECLINADO'
+    && confOtro.estado === 'CONFIRMADO'
+    && !(r.promovidos || []).length
+    && app.demanda(svc).confirmadas === 1;
+});
+
+caso('C1-033-AUDITA', 'Auditoría de rechazo y promoción (AC-033-06/07)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svc = resetServicioLimpio(S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 4));
+  svc.capacidadBase = 1; svc.capacidadExtra = 0;
+  const base = Math.max(0, ...S().reservas.map(r => r.id));
+  const conf = {
+    id: base + 1, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T05:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  const esp = {
+    id: base + 2, servicioId: svc.id, userId: 2, nombre: 'Rodrigo Salas', parada: 'Plaza Colón — Centro', offset: 15,
+    creada: '2026-09-14T05:10:00.000Z', estado: 'EN_ESPERA', jornadaId: app.jornadaDe(svc.salida).id
+  };
+  S().reservas.push(conf, esp);
+  const nAud = S().auditoria.length;
+  const nNoti = (S().notificaciones || []).length;
+  const r = app.rechazarInscripcion(conf.id);
+  const aud = S().auditoria.slice(0, S().auditoria.length - nAud).map(a => a.accion + ' ' + a.detalle).join(' | ');
+  return r.ok && S().auditoria.length > nAud
+    && /declin|liber/i.test(aud)
+    && /promoci[oó]n/i.test(aud)
+    && (S().notificaciones || []).length > nNoti;
+});
+
+caso('C1-033-RUTAS', 'Selector de cambio ofrece Norte y Sur sin índice fijo (AC-033-08)', () => {
+  need('opcionesCambioInscripcion');
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svcN = S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 23);
+  const id = Math.max(0, ...S().reservas.map(r => r.id)) + 1;
+  S().reservas = S().reservas.filter(r => !(r.userId === 1 && r.servicioId === svcN.id));
+  S().reservas.push({
+    id, servicioId: svcN.id, userId: 1, nombre: 'Camila Fuentes', parada: 'Estadio Regional (Av. Angamos)', offset: 5,
+    creada: '2026-09-14T04:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svcN.salida).id
+  });
+  const opts = app.opcionesCambioInscripcion(id);
+  const idxs = [...new Set(opts.map(s => s.rutaIdx))];
+  const uiFn = html.match(/function uiCambiar\([\s\S]*?\nfunction uiCambiarOk/);
+  return opts.length > 0
+    && idxs.includes(0) && idxs.includes(1)
+    && uiFn && !/rutaIdx\s*===\s*0/.test(uiFn[0])
+    && /opcionesCambioInscripcion/.test(uiFn[0]);
+});
+
+caso('C1-033-PARADA-OK', 'Parada compatible se conserva al cambiar (AC-033-09)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  // Parada común de nombre solo en Norte; usamos cambio Norte→Norte otra hora con misma parada
+  const svc = S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 23);
+  const otro = S().servicios.find(s => s.id !== svc.id && !s.ejecutado && s.rutaIdx === 0
+    && app.jornadaDe(s.salida).id === app.jornadaDe(svc.salida).id && app.demanda(s).libres > 0);
+  const id = Math.max(0, ...S().reservas.map(r => r.id)) + 1;
+  S().reservas = S().reservas.filter(r => !(r.userId === 1 && (r.servicioId === svc.id || r.servicioId === otro.id)));
+  const parada = 'Plaza Colón — Centro';
+  S().reservas.push({
+    id, servicioId: svc.id, userId: 1, nombre: 'Camila Fuentes', parada, offset: 15,
+    creada: '2026-09-14T03:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svc.salida).id
+  });
+  const r = app.cambiarInscripcion(id, otro.id, {}); // sin forzar parada
+  const res = S().reservas.find(x => x.id === id);
+  return r.ok && res.servicioId === otro.id && res.parada === parada && res.offset === 15;
+});
+
+caso('C1-033-PARADA-REQ', 'Parada incompatible exige selección; no primera silenciosa (AC-033-10)', () => {
+  app.setRelojServidor('2026-09-14T12:00:00');
+  app.login(1);
+  const svcN = S().servicios.find(s => !s.ejecutado && s.rutaIdx === 0 && new Date(s.salida).getHours() === 5);
+  const svcS = S().servicios.find(s => !s.ejecutado && s.rutaIdx === 1
+    && app.jornadaDe(s.salida).id === app.jornadaDe(svcN.salida).id && new Date(s.salida).getHours() === 5);
+  if (!svcS) throw new Error('sin Sur');
+  svcS.capacidadBase = Math.max(svcS.capacidadBase, 30);
+  svcS.capacidadExtra = 0;
+  S().reservas = S().reservas.filter(r => r.servicioId !== svcS.id);
+  const id = Math.max(0, ...S().reservas.map(r => r.id)) + 1;
+  S().reservas = S().reservas.filter(r => !(r.userId === 1 && r.servicioId === svcN.id));
+  const paradaNorte = 'Plaza Colón — Centro'; // no existe en Sur
+  S().reservas.push({
+    id, servicioId: svcN.id, userId: 1, nombre: 'Camila Fuentes', parada: paradaNorte, offset: 15,
+    creada: '2026-09-14T02:00:00.000Z', estado: 'CONFIRMADO', jornadaId: app.jornadaDe(svcN.salida).id
+  });
+  const r1 = app.cambiarInscripcion(id, svcS.id, {});
+  const res1 = S().reservas.find(x => x.id === id);
+  const snap1 = { svc: res1.servicioId, parada: res1.parada };
+  const primeraSur = S().contrato.rutas[1].paradas[0][0];
+  const r2 = app.cambiarInscripcion(id, svcS.id, { parada: 'Jardines del Sur', offset: 14 });
+  const res2 = S().reservas.find(x => x.id === id);
+  const uiOk = html.match(/function uiCambiarOk\(id\)\{[\s\S]*?\nfunction uiCambiarOkConParada/);
+  if (!(r1.ok === false && r1.error === 'PARADA_REQUERIDA')) throw new Error('r1=' + JSON.stringify(r1));
+  if (!(snap1.svc === svcN.id && snap1.parada === paradaNorte)) throw new Error('snap1=' + JSON.stringify(snap1));
+  if (!(snap1.parada !== primeraSur)) throw new Error('silencio primera');
+  if (!(r2.ok && res2.servicioId === svcS.id && res2.parada === 'Jardines del Sur')) throw new Error('r2=' + JSON.stringify(r2) + ' res2=' + JSON.stringify(res2));
+  if (!(res2.parada !== primeraSur)) throw new Error('asignó primera');
+  if (!(uiOk && /paradaEnRuta/.test(uiOk[0]) && !/paradas\[0\]/.test(uiOk[0]))) throw new Error('uiOk aún usa paradas[0] o falta paradaEnRuta');
+  return true;
+});
+
 const fallas = resultados.filter(r => !r.ok);
 for (const r of resultados) console.log((r.ok ? 'PASS ' : 'FAIL ') + r.id + ' — ' + r.d + (r.err ? ' [' + r.err + ']' : ''));
 console.log(`\nArchivo: ${path.relative(process.cwd(), archivo)} · ${resultados.length - fallas.length}/${resultados.length} casos correctos.`);

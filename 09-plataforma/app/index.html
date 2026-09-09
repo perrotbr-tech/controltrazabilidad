@@ -212,7 +212,7 @@ function semilla(){
      extrasPermitidos:true, tarifaExtra:45000,
      requisitosExtra:'Demanda confirmada sobre los cupos de la salida, o contingencia operacional con evidencia',
      codigoConciliacion:'CT-2026', estado:'Vigente'},
-   servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[], manifiestos:[], excepciones:[]};
+   servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[], manifiestos:[], excepciones:[], notificaciones:[]};
 
   const CAP=S.contrato.capacidadVan;   // SPEC-003 REQ-010: única fuente de la capacidad por van
   // DEC-032 + H-023: demanda media por salida (23:00 + semana real) y factor por día de inicio de jornada
@@ -294,21 +294,41 @@ function ocupaCupo(r){
   return r&&['CONFIRMADO','confirmada','EN_ESPERA','espera'].includes(r.estado);
 }
 function recalcular(St,svc){
-  // Solo reasigna entre ocupantes de cupo; no toca PROPUESTO / DECLINADO / FUERA_MANIFIESTO / etc.
+  // Solo reasigna entre ocupantes de cupo del mismo servicio (salida+ruta+sentido); FIFO por creada.
+  // DEC-033: EN_ESPERA promovido → CONFIRMADO; nunca supera capacidad.
   const rs=St.reservas.filter(r=>r.servicioId===svc.id&&ocupaCupo(r))
     .sort((a,b)=>a.creada<b.creada?-1:1);
   const cap=capacidadTotal(svc); const promovidos=[];
   rs.forEach((r,i)=>{
     if(i<cap){
       const eraEspera=r.estado==='espera'||r.estado==='EN_ESPERA';
-      const nuevo=(r.estado==='CONFIRMADO')?'CONFIRMADO':'confirmada';
-      if(eraEspera) promovidos.push(r);
-      r.estado=nuevo;
+      if(eraEspera){ promovidos.push(r); r.estado='CONFIRMADO'; }
+      else if(r.estado!=='CONFIRMADO'&&r.estado!=='confirmada') r.estado='CONFIRMADO';
     } else {
-      r.estado=(r.estado==='CONFIRMADO'||r.estado==='EN_ESPERA')?'EN_ESPERA':'espera';
+      r.estado=(r.estado==='CONFIRMADO'||r.estado==='confirmada'||r.estado==='EN_ESPERA')?'EN_ESPERA':'espera';
     }
   });
   return promovidos;
+}
+function notificarSimulada(tipo,detalle,userId,servicioId,reservaId){
+  if(!S.notificaciones) S.notificaciones=[];
+  const id=Math.max(0,...S.notificaciones.map(n=>n.id),0)+1;
+  S.notificaciones.unshift({id,tipo,detalle:detalle||'',userId,servicioId,reservaId,fecha:ahora().toISOString(),simulada:true});
+}
+function paradaEnRuta(paradaNombre,rutaIdx){
+  const R=S.contrato.rutas.find(x=>x.id===rutaIdx)||S.contrato.rutas[rutaIdx];
+  if(!R||paradaNombre==null) return null;
+  return R.paradas.find(p=>p[0]===paradaNombre)||null;
+}
+function opcionesCambioInscripcion(reservaId){
+  const r0=S.reservas.find(x=>x.id===reservaId);
+  if(!r0) return [];
+  const svc0=S.servicios.find(s=>s.id===r0.servicioId);
+  if(!svc0) return [];
+  const jid=r0.jornadaId||jornadaDe(svc0.salida).id;
+  // Todas las rutas configuradas/habilitadas de la jornada (DEC-033: no fijar solo Norte).
+  return S.servicios.filter(s=>!s.ejecutado&&s.id!==r0.servicioId&&jornadaDe(s.salida).id===jid
+    &&S.contrato.rutas.some(R=>R.id===s.rutaIdx));
 }
 function recalcularTodo(St){St.servicios.forEach(s=>recalcular(St,s));}
 function demanda(svc){
@@ -424,6 +444,19 @@ function cambiarInscripcion(id, nuevoServicioId, opts){
     audita('BLOQUEADO_POR_CIERRE','Cambio rechazado — jornada '+jid,'svc '+r.servicioId);
     return {ok:false,error:'BLOQUEADO_POR_CIERRE'};
   }
+  // DEC-033: validar parada antes de cupo — conservar si válida; si no, exigir selección (nunca 1ª silenciosa).
+  let nuevaParada=r.parada, nuevoOffset=r.offset;
+  if(opts&&opts.parada!=null){
+    const m=paradaEnRuta(opts.parada,nuevo.rutaIdx);
+    if(!m) return {ok:false,error:'PARADA_INVALIDA'};
+    nuevaParada=m[0];
+    nuevoOffset=(opts.offset!=null)?opts.offset:m[1];
+  } else {
+    const m=paradaEnRuta(r.parada,nuevo.rutaIdx);
+    if(!m) return {ok:false,error:'PARADA_REQUERIDA'};
+    nuevaParada=m[0];
+    nuevoOffset=r.offset;
+  }
   const D=demanda(nuevo);
   const aceptaEspera=opts&&opts.aceptaEspera;
   const eraConfirmado=r.estado==='CONFIRMADO'||r.estado==='confirmada';
@@ -433,8 +466,8 @@ function cambiarInscripcion(id, nuevoServicioId, opts){
   }
   const oldId=r.servicioId;
   r.servicioId=nuevoServicioId;
-  if(opts&&opts.parada!=null) r.parada=opts.parada;
-  if(opts&&opts.offset!=null) r.offset=opts.offset;
+  r.parada=nuevaParada;
+  r.offset=nuevoOffset;
   if(eraConfirmado){
     if(D.libres<=0&&aceptaEspera) r.estado='EN_ESPERA';
     else r.estado='CONFIRMADO';
@@ -459,8 +492,24 @@ function rechazarInscripcion(id){
   }
   const ant=r.estado;
   r.estado='DECLINADO';
-  audita('Inscripción declinada',svc?svc.ruta+' '+hora(svc.salida):'','→ DECLINADO desde '+ant);
-  guardar(); return {ok:true,reserva:r};
+  let promovidos=[];
+  if(svc) promovidos=recalcular(S,svc);
+  audita('Inscripción declinada — cupo liberado',
+    (svc?svc.ruta+' '+hora(svc.salida):'')+' · desde '+ant,
+    '→ DECLINADO');
+  notificarSimulada('LIBERACION_CUPO',
+    'Cupo liberado por declinación'+(svc?' · '+svc.ruta+' '+hora(svc.salida):''),
+    r.userId, r.servicioId, r.id);
+  if(promovidos.length){
+    const detalle=promovidos.map(p=>'#'+p.id+' '+p.nombre).join(', ');
+    audita('Promoción lista de espera',
+      (svc?svc.ruta+' '+hora(svc.salida)+' · ':'')+detalle+' → CONFIRMADO',
+      'EN_ESPERA');
+    promovidos.forEach(p=>notificarSimulada('PROMOCION_ESPERA',
+      'Pasaste de lista de espera a CONFIRMADO'+(svc?' · '+svc.ruta+' '+hora(svc.salida):''),
+      p.userId, p.servicioId, p.id));
+  }
+  guardar(); return {ok:true,reserva:r,promovidos};
 }
 function aplicarCierreJornada(jornadaId){
   const afectadas=S.reservas.filter(r=>{
@@ -523,6 +572,12 @@ function login(uid){
   audita('Inicio de sesión',u.nombre+' — contexto '+S.contexto,''); guardar(); render();
 }
 function logout(){audita('Cierre de sesión','',''); S.sesion=null;S.contexto=null;S.vista=null;guardar();render();}
+function reiniciarDemo(){
+  if(!DEMO) return;
+  S=semilla();
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+  render();
+}
 function cambiarContexto(rol){
   const dispo=rolesDe(S.sesion).map(a=>a.rol);
   if(!dispo.includes(rol)){deny('contexto no autorizado','cambiar:contexto');alert('Contexto no autorizado.');return;}
@@ -550,7 +605,8 @@ function render(){
       <div style="margin-top:5px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
       ${roles.length>1?`<select onchange="cambiarContexto(this.value)" style="width:auto;padding:3px 6px;font-size:12px;color:#16202A">
         ${roles.map(r=>`<option value="${r.rol}" ${r.rol===S.contexto?'selected':''}>${r.rol}</option>`).join('')}</select>`:''}
-      <button class="sec" style="padding:3px 10px;font-size:12px;color:#16202A" onclick="logout()">Salir</button></div>
+      <button class="sec" style="padding:3px 10px;font-size:12px;color:#16202A" onclick="logout()">Salir</button>
+      ${DEMO?`<button class="sec" style="padding:3px 10px;font-size:12px;color:#16202A" onclick="if(confirm('¿Reiniciar datos de demostración? Se pierde el estado actual de la simulación.'))reiniciarDemo()">Reiniciar demo</button>`:''}</div>
     </div>
     ${DEMO?'<span class="demo-flag">MODO DEMOSTRACIÓN · SIMULACIÓN CORTE 1</span>':''}
   </div>
@@ -566,7 +622,9 @@ function vLogin(){
   return `<div class="login-wrap"><div class="login">
     <h1>Trazabilidad de Transporte</h1>
     <p class="sub">Inicia sesión. El sistema abre automáticamente la interfaz que corresponde a tu perfil — los roles los asigna el administrador.</p>
-    ${DEMO?`<div class="advertencia" style="margin-top:14px"><b>Modo demostración</b>Cuentas de prueba para recorrer el MVP. En producción este listado no existe: se ingresa con credenciales y el rol proviene de la base de datos.</div>`:''}
+    ${DEMO?`<div class="advertencia" style="margin-top:14px"><b>MODO DEMOSTRACIÓN · SIMULACIÓN CORTE 1</b>Cuentas ficticias para recorrer el prototipo. En producción este listado no existe.
+      <div class="acciones" style="margin-top:10px"><button class="sec" type="button" onclick="reiniciarDemo()">Reiniciar datos de demostración</button></div>
+    </div>`:''}
     ${S.users.map(u=>{const r=rolesDe(u.id).map(a=>a.rol);
       return `<button class="cuenta" onclick="login(${u.id})">
         <span class="ini">${u.nombre.split(' ').map(p=>p[0]).slice(0,2).join('')}</span>
@@ -663,16 +721,33 @@ function uiConfirmar(id){const r=confirmarInscripcion(id);if(!r.ok)alert(r.error
 function uiRechazar(id){const r=rechazarInscripcion(id);if(!r.ok)alert(r.error==='BLOQUEADO_POR_CIERRE'?'Bloqueado por cierre de jornada.':(r.error||'No se pudo declinar'));render();}
 function uiCambiar(id,svcActual){
   const r0=S.reservas.find(x=>x.id===id); if(!r0)return;
-  const jid=r0.jornadaId||jornadaDe(S.servicios.find(s=>s.id===r0.servicioId).salida).id;
-  const opts=S.servicios.filter(s=>!s.ejecutado&&s.id!==svcActual&&jornadaDe(s.salida).id===jid&&s.rutaIdx===0);
-  modal(`<h2>Cambiar inscripción</h2><p class="sub">Elige otra salida de la misma jornada.</p>
-    <label>Nueva salida</label><select id="mCambiar">${opts.map(s=>`<option value="${s.id}">${hora(s.salida)} · ${s.ruta} · libres ${demanda(s).libres}</option>`).join('')}</select>
+  const opts=opcionesCambioInscripcion(id).filter(s=>s.id!==svcActual);
+  modal(`<h2>Cambiar inscripción</h2><p class="sub">Elige otra salida de la misma jornada (todas las rutas configuradas).</p>
+    <label>Nueva salida</label><select id="mCambiar">${opts.map(s=>`<option value="${s.id}">${hora(s.salida)} · ${esc(s.ruta)} · libres ${demanda(s).libres}</option>`).join('')}</select>
     <div class="acciones"><button class="amb" onclick="uiCambiarOk(${id})">Cambiar</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
 }
 function uiCambiarOk(id){
   const nid=+document.getElementById('mCambiar').value;
-  const s=S.servicios.find(x=>x.id===nid); const R=S.contrato.rutas[s.rutaIdx]; const p=R.paradas[0];
-  const r=cambiarInscripcion(id,nid,{parada:p[0],offset:p[1]});
+  const s=S.servicios.find(x=>x.id===nid); if(!s)return;
+  const r0=S.reservas.find(x=>x.id===id); if(!r0)return;
+  if(paradaEnRuta(r0.parada,s.rutaIdx)){
+    const r=cambiarInscripcion(id,nid,{});
+    if(!r.ok)alert(r.error==='PARADA_REQUERIDA'?'Debe elegir un punto de abordaje válido en la ruta destino.':(r.error||'No se pudo cambiar'));
+    cierraModal(); render(); return;
+  }
+  // Parada actual no existe en destino: exigir selección explícita (DEC-033 — nunca 1ª silenciosa).
+  const R=S.contrato.rutas[s.rutaIdx];
+  modal(`<h2>Elegir punto de abordaje</h2>
+    <p class="sub">Tu parada actual (<b>${esc(r0.parada)}</b>) no existe en <b>${esc(s.ruta)}</b>. Elige un punto válido.</p>
+    <label>Punto de abordaje</label>
+    <select id="mParadaCambio">${R.paradas.map(p=>`<option value="${p[0]}|${p[1]}">${esc(p[0])} — paso ~${hora(new Date(dt(s.salida).getTime()+p[1]*60000).toISOString())}</option>`).join('')}</select>
+    <div class="acciones"><button class="amb" onclick="uiCambiarOkConParada(${id},${nid})">Confirmar cambio</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function uiCambiarOkConParada(id,nid){
+  const raw=(document.getElementById('mParadaCambio')||{}).value;
+  if(!raw){alert('Debe elegir un punto de abordaje.');return;}
+  const sep=raw.indexOf('|'); const parada=raw.slice(0,sep); const offset=+raw.slice(sep+1);
+  const r=cambiarInscripcion(id,nid,{parada,offset});
   if(!r.ok)alert(r.error||'No se pudo cambiar');
   cierraModal(); render();
 }
@@ -1107,10 +1182,10 @@ document.getElementById('velo').addEventListener('click',e=>{if(e.target.id==='v
 
 window.app={get S(){return S},requirePermission,demanda,nivelJustificacion,jornadaDe,recalcular,capacidadTotal,
   respaldado,clasifica,transicion,periodo,extrasResumen,div,esc,reservaAbierta,login,logout,irA,cambiarContexto,
-  ahora,setRelojServidor,ventanaJornada,t0Jornada,ocupaCupo,
+  ahora,setRelojServidor,ventanaJornada,t0Jornada,ocupaCupo,paradaEnRuta,opcionesCambioInscripcion,notificarSimulada,
   precargarPropuesta,confirmarInscripcion,cambiarInscripcion,rechazarInscripcion,
-  aplicarCierreJornada,registrarExcepcionPostCierre,
-  reset:()=>{S=semilla();guardar();render();}};
+  aplicarCierreJornada,registrarExcepcionPostCierre,reiniciarDemo,
+  reset:()=>{reiniciarDemo();}};
 render();
 </script>
 </body>
