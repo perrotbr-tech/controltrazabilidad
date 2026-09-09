@@ -1,6 +1,12 @@
 # SPEC-003 — Configuración operativa real del Enjoy (vans, capacidad, extras)
-Estado (PLANTILLA-SPEC): **Aprobada por el dueño (DEC-008, 2026-09-08) — En desarrollo.** Propietario humano: Eduardo Perrot.
-Origen: declaraciones del dueño 2026-09-08 (V-16 y respuestas Q1–Q5) · DEC-004 · invariante CLAUDE.md sobre configuración a respaldar por el cliente.
+Estado (PLANTILLA-SPEC): **Parcialmente superada (2026-09-09, DEC-022).** Capacidad/extras (DEC-008/012/013) siguen vigentes como parámetros; **horarios, cantidad de salidas y proyección fija quedan supersedidos por SPEC-003b + DEC-022**. Propietario humano: Eduardo Perrot.
+Origen: declaraciones del dueño 2026-09-08 (V-16 y respuestas Q1–Q5) · DEC-004 · DEC-022 · invariante CLAUDE.md sobre configuración a respaldar por el cliente.
+
+## Nota de supersesión (DEC-022)
+- **Vigente desde SPEC-003b:** 7 salidas con minutos H-022 (00:15…06:45), proyección **calculada** = días × salidasPorJornada × rutas (referencial demo 30×7×2=420, no regla fija).
+- **Dejan de ser AC/REQ obligatorios de esta SPEC:** AC-04 (8 salidas 23:00–06:00) y REQ-013 (8×2×30=480).
+- **Siguen vigentes:** capacidadVan referencial 15, vansExtraDisponibles/tope jornada 2 (DEC-013/025), cobro por van, REQ-010/011/012, AC de capacidad/extras no horarios.
+- Toda cifra de salidas/proyección debe leerse desde **configuración de jornada**, nunca hardcodeada como invariante del sistema.
 
 ## 1. Problema y resultado
 El prototipo codifica vans de 4 cupos, extra de +4 y una demanda sembrada de 3 a 13 personas por salida. El dueño declara vans de 15 a 17 pasajeros, dos vans adicionales completas a disposición y cobro por van. Con la capacidad real, la lista de espera y los casos de prueba actuales no representan la operación. Resultado: `app/` con la configuración real declarada, sin cambiar reglas contractuales, fórmulas ni permisos.
@@ -28,7 +34,7 @@ Excluido: reserva por sentido y puntos de bajada/encuentro (SPEC-004), maestro d
 - REQ-010 Capacidad por van, vans por ruta, vans extra disponibles y salidas por noche son parámetros del contrato; ninguna constante numérica de capacidad queda dispersa en semilla o textos.
 - REQ-011 Los casos sembrados se regeneran en proporción a la capacidad real y siguen demostrando lista de espera, extra autorizado, extra observado y extra rechazado.
 - REQ-012 Un extra es siempre una van completa, con tarifa por van; no puede solicitarse más vans que `vansExtraDisponibles`.
-- REQ-013 La proyección mensual sigue siendo 8 × 2 × 30 (DEC-004); no cambia.
+- REQ-013 ~~La proyección mensual sigue siendo 8 × 2 × 30 (DEC-004)~~ **DEROGADO por DEC-022 / SPEC-003b**: la proyección se calcula desde la configuración vigente (`días × salidasPorJornada × rutas`).
 
 ## 5. Reglas de negocio
 Sin cambio: fijo separado del uso; extra con causal, autorización y evidencia; observado no concilia sin subsanar o excluir. Regla nueva R6: `vans` de una solicitud ∈ [1, `vansExtraDisponibles`].

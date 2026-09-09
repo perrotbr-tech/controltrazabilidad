@@ -6,8 +6,8 @@
 |---|---|
 | RN-001 | Toda fecha operativa se calcula en America/Santiago, incluyendo horario de verano. |
 | RN-002 | La jornada comienza a las 23:00 y termina en una hora configurable posterior a la última salida. |
-| RN-003 | La inscripción abre exactamente 24 horas antes de T0. |
-| RN-004 | El autoservicio se bloquea exactamente 2 horas antes de T0. Para T0=23:00, bloquea a las 21:00. |
+| RN-003 | La inscripción abre exactamente **48 horas** antes de T0 (configurable por jornada; DEC-015). |
+| RN-004 | El autoservicio se bloquea exactamente **2 horas** antes de T0. Para T0=23:00, bloquea a las 21:00. |
 | RN-005 | El servidor determina la hora; nunca el reloj del teléfono. |
 | RN-006 | Si cambia T0, apertura y bloqueo se recalculan automáticamente. |
 | RN-007 | El cierre genera una versión inmutable del manifiesto; los cambios posteriores son anexos de excepción. |

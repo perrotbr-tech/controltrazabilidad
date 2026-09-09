@@ -38,3 +38,10 @@ Ninguna de estas decisiones se toma aquí; corresponden a Eduardo (T-03). Cada u
 Dependencias: ADR-001 (autenticación y aislamiento en servidor), V-08 (responsable/encargado de datos), PR-06 (paradas reales para que el trabajador elija su punto), V-16/SPEC-003 (capacidad real por van condiciona cupos y lista de espera).
 
 Estado de las decisiones al 2026-09-08 (cierre): **D1–D6 decididas** (DEC-006 y DEC-010: opciones sugeridas aprobadas por el dueño). SPEC-001 pasa a **En revisión**; la próxima sesión la completa con la plantilla de 12 secciones y la lleva a construcción simulada en `app/` (T-05, corte vertical con marca "simulación").
+
+## Ampliación Fase 3 (2026-09-09) — sin implementación
+Origen: DEC-014, DEC-015 (T−48h/T−2h), DEC-017, DEC-023. Detalle de aceptación en `SPEC-CORTE-1-inscripcion-hibrida.md`.
+- REQ-006: precarga de propuesta desde turno/nómina; estado PROPUESTO ≠ CONFIRMADO.
+- REQ-007: ventana configurable relativa a primera salida (apertura 48 h, bloqueo 2 h en config actual).
+- REQ-008: no confirmados al bloqueo liberan cupo y quedan fuera del manifiesto confirmado.
+- Construcción del Corte 1 **no autorizada** hasta aprobación explícita (+ ficha DEC-021 si hay backend).

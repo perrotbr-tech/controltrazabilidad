@@ -17,13 +17,14 @@ Transformar la demo en un MVP móvil multiusuario cuyo centro no sea comprar un 
 
 ## 2. Regla fija de la jornada
 
-- T0: primera salida operacional a las 23:00, zona America/Santiago.
-- Apertura: 23:00 del día anterior (T−24h).
-- Cierre ordinario: 21:00 del día de la jornada (T−2h).
-- Ventana efectiva de autoatención: 22 horas.
-- Después de las 21:00 el trabajador no puede inscribirse, cancelar ni cambiar por autoservicio.
-- Los servicios de madrugada pertenecen a la fecha operacional iniciada a las 23:00.
+- T0: primera salida operacional (configurables; actual 23:00), zona America/Santiago.
+- Apertura: **T−48h** (DEC-015; actual: 23:00 dos días antes relativos a T0).
+- Cierre ordinario: **T−2h** (actual: 21:00 del día de T0).
+- Ventana efectiva de autoatención: 46 horas con la config actual.
+- Después del bloqueo el trabajador no puede inscribirse, cancelar ni cambiar por autoservicio.
+- Los servicios de madrugada pertenecen a la fecha operacional iniciada en T0.
 - Un cambio posterior al cierre es una excepción, no una reserva ordinaria.
+- Catálogo de salidas y proyección: configuración (DEC-022); no hardcodear 8/480 ni 7/420 como invariantes.
 
 ## 3. Orden obligatorio de lectura para Claude Code
 

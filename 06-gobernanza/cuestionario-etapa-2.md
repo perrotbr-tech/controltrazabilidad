@@ -1,5 +1,7 @@
 # Cuestionario etapa 2 — lo que necesito para cerrar el MVP con el mínimo de tokens
-Responde en un solo mensaje, con el número y una línea. Donde hay opción sugerida, basta "ok". Lo que no respondas se toma con la opción sugerida y queda registrado como supuesto.
+Estado 2026-09-09: varias preguntas quedaron **cerradas por DEC-014…031** (ventana, extras ex post, GPS van, arquitectura recomendada, geodatos anonimizados). Lo que sigue abierto es la **ficha T-19 (DEC-021)** y autorización de construcción. No tratar “opción sugerida no respondida” como DEC.
+
+Responde en un solo mensaje, con el número y una línea. Donde hay opción sugerida, basta "ok". Lo que no respondas se toma con la opción sugerida y queda registrado como supuesto — **salvo** que ya exista DEC explícita.
 
 ## A. Geolocalización de ruta "estilo Uber" (SPEC-006)
 | # | Pregunta | Opción sugerida |

@@ -4,25 +4,16 @@ Primero lee 00-LEEME.md y todos los documentos de la carpeta en el orden indicad
 
 Actúa como Supervisor. Usa los agentes de .claude/agents con tareas acotadas y un solo escritor por archivo. No permitas que el Constructor se autoapruebe.
 
-Decisión de producto a formalizar:
+Decisión de producto a formalizar (estado 2026-09-09: DEC-014…031 **aprobadas**):
 - modelo híbrido flexible;
 - turno o nómina genera una propuesta;
 - el trabajador confirma o cambia;
-- inscripción abre 24 horas antes de la primera salida de las 23:00;
-- autoservicio se bloquea 2 horas antes, a las 21:00;
+- inscripción abre **48 horas** antes de la primera salida;
+- autoservicio se bloquea 2 horas antes;
 - después del cierre solo hay excepción auditada;
 - máximo dos vans extra acumuladas por jornada;
 - el pago fijo no depende del uso;
 - se rastrea la van, no a la persona.
 
-PRIMERA EJECUCIÓN: NO ESCRIBAS CÓDIGO.
-
-1. Haz análisis de impacto contra SPEC-001, 003b, 004, 005, 006 y 007.
-2. Propón DEC-014 en adelante sin aprobarlas por mí.
-3. Señala contradicciones, especialmente hora final de jornada, personas no confirmadas, capacidad 93/90 y distribución Norte/Sur.
-4. Ordena las SPEC de Fase 3 en cortes verticales.
-5. Encarga al revisor-qa cerrar T-15 sin modificar código.
-6. Presenta una sola lista de decisiones humanas bloqueantes.
-7. Cierra con archivos que propones modificar, pruebas necesarias, costo relativo y próximo paso.
-
-No crees Supabase, Vercel, dominios, cuentas, contactos, despliegues ni datos reales. No crees PR ni fusiones ramas sin autorización expresa.
+Tras actualización documental: esperar aprobación humana antes de escribir código del Corte 1.
+No crear Supabase, Vercel, dominios, cuentas, contactos, despliegues ni datos reales. No crear PR ni fusiones sin autorización expresa.

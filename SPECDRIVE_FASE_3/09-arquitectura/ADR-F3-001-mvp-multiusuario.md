@@ -1,71 +1,31 @@
 # ADR-F3-001 — Arquitectura del MVP multiusuario
-
-Estado: PROPUESTA; requiere decisión humana y verificación actual de costos.
+Estado: **Arquitectura recomendada (DEC-021); sin despliegue.** Actualizado 2026-09-09.
 
 ## Contexto
-
 El HTML con localStorage demuestra reglas, pero no ofrece autenticación, concurrencia, permisos de servidor, sincronización ni auditoría confiable.
 
 ## Alternativas
-
-### A. PWA web + Supabase
-
-- Frontend móvil instalable.
-- Postgres, autenticación y políticas por fila.
-- Funciones de servidor para cierre, capacidad y conciliación.
-- Adecuado para piloto de bajo costo.
-- Requiere verificar región de datos, límites, respaldo, salida del proveedor y precio vigente.
-
+### A. PWA web + Supabase (+ Vercel)
+Recomendada para el piloto ficticio (DEC-021).
 ### B. PWA web + Firebase
-
-- Autenticación y tiempo real maduros.
-- Reglas documentales.
-- Menor ajuste natural para conciliación relacional y multiempresa compleja.
-
+Menor ajuste natural para conciliación relacional multiempresa.
 ### C. Node/Postgres administrado
-
-- Control y portabilidad mayores.
-- Más trabajo de operación, monitoreo, respaldo y seguridad.
+Mayor control/portabilidad; más operación.
 
 ## Recomendación condicionada
+Seleccionar A **solo tras ficha** de: aislamiento org/contrato, transacciones de capacidad, tareas en America/Santiago, exportación/respaldo, costos, política de datos, migración.
+**No crear cuentas, proyectos ni desplegar sin aprobación.**
 
-Seleccionar A para el piloto ficticio si una prueba técnica confirma:
-
-- aislamiento por organización y contrato;
-- transacciones de capacidad;
-- tareas programadas en America/Santiago;
-- exportación y respaldo;
-- costos dentro del límite aprobado;
-- política de datos aceptada.
-
-No crear cuentas, proyectos ni desplegar sin aprobación.
-
-## Cortes verticales
-
-1. Autenticación, organizaciones, turnos, propuesta y confirmación con T−24/T−2.
+## Cortes verticales (DEC-019)
+1. Autenticación, organizaciones, turnos, propuesta y confirmación con **T−48h / T−2h** (DEC-015).
 2. Despacho, manifiesto y abordaje.
-3. Excepciones, extras, auditoría y conciliación.
-4. GPS de van como capacidad posterior, no bloqueante del MVP inicial.
+3. Excepciones, extras, auditoría y conciliación PDF.
+4. GPS de van (no bloqueante del MVP inicial).
 
 ## Controles técnicos
+Políticas de fila y API con pruebas adversariales; capacidad en transacción; reloj servidor; UTC + fecha operacional America/Santiago; auditoría append-only; validación/escape; secretos en entorno; demo ≠ producción; respaldo y observabilidad antes del piloto real.
 
-- políticas de fila y API con pruebas adversariales;
-- operaciones de capacidad en transacción;
-- reloj del servidor;
-- timestamps UTC y fecha operacional America/Santiago;
-- auditoría append-only;
-- validación de entrada y escape de salida;
-- secretos solo en variables del entorno;
-- datos ficticios separados de producción;
-- respaldo, recuperación y observabilidad definidos antes del piloto real.
-
-## Decisiones humanas pendientes
-
-- proveedor y cuenta propietaria;
-- presupuesto máximo mensual;
-- región y tratamiento de datos;
-- dominio;
-- correo transaccional;
-- retención;
-- aprobación de despliegue;
-- fecha y grupo del piloto.
+## Decisiones humanas pendientes para pasar a construcción
+- Ficha T-19 (costo, región, seguridad, respaldo, migración).
+- Autorización explícita de implementación del Corte 1.
+- Dominio, correo transaccional, retención, V-08.

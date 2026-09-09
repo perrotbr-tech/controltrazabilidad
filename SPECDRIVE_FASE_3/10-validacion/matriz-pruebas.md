@@ -2,12 +2,13 @@
 
 ## Compuerta V1: reglas temporales
 
-- apertura T−24;
+- apertura T−48 (DEC-015);
 - bloqueo T−2;
-- frontera 20:59:59/21:00:00;
+- frontera 20:59:59/21:00:00 (con T0=23:00);
 - reloj del servidor;
 - America/Santiago y horario estacional;
-- servicios de madrugada asociados a la jornada correcta.
+- servicios de madrugada asociados a la jornada correcta;
+- parámetros de jornada configurables (no 480/420 fijos).
 
 ## Compuerta V2: identidad y aislamiento
 

@@ -8,9 +8,9 @@ Parámetros iniciales:
 
 - Zona horaria: America/Santiago.
 - Inicio: 23:00.
-- Apertura de inscripción: T−24h.
-- Bloqueo: T−2h, es decir 21:00.
-- Última salida: configurable; hoy existe evidencia de horarios de madrugada que debe reconciliarse con el contrato.
+- Apertura de inscripción: T−48h (DEC-015).
+- Bloqueo: T−2h, es decir 21:00 con T0=23:00.
+- Última salida: configurable; config operacional actual 06:45 (DEC-022 / H-022).
 
 No usar una ventana técnica de 23:00 a 22:59 como definición de servicio. El término debe ser explícito y configurable.
 
