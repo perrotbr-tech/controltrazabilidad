@@ -22,14 +22,14 @@ DEC-001…DEC-013 conservadas. **DEC-014…DEC-031 aprobadas** el 2026-09-09. **
 - **Construcción Corte 1**: autorizada solo como simulación en `app/` (sin backend).
 
 ## Trabajo de esta sesión
-- **DEC-032 registrada**; SPEC-CORTE-1 y configurables alineados.
-- **Corte 1 simulación implementada** en `09-plataforma/app/` (`trazabilidad_v4`): ventana T−48/T−2, estados híbridos, 8 salidas con 23:00 reservable, UI trabajador, `scripts/check-corte1.cjs` 22/22.
-- QA independiente: PASS CON LIMITACIONES (XSS corregido).
-- Sin commit/push/PR hasta autorización del dueño. Sin backend/deploy.
+- **DEC-033 aprobada** (post-merge Bugbot PR #4): rechazo confirmado → liberación + promoción FIFO misma salida/ruta/sentido; cambio multi-ruta; parada compatible/exigida.
+- Corrección en `09-plataforma/app/` + `check-corte1` C1-033-* (31/31). SPEC: `SPEC-CORTE-1-DEC-033-rechazo-espera-cambio.md`.
+- Suites + E2E verdes. **Sin commit/push/PR** hasta autorización del dueño.
 1. Presentar ficha costo/región/seguridad/respaldo/migración (DEC-021) antes de cualquier recurso externo.
 2. Alinear T-18/E2E a 8 salidas tras DEC-032.
 3. SPEC-004 con sectores anonimizados (DEC-030) cuando haya planilla/B1.
 4. Cortes 2–4 según DEC-019 (siguen sin autorización de construcción).
+5. Autorizar commit/PR de la corrección DEC-033 cuando el dueño lo indique.
 
 ## Estado técnico
 HTML local con reglas de capacidad/extras/horario demo. CI de PR cubre scripts Node y E2E del prototipo. La simulación del Corte 1 en navegador **no** es seguridad ni concurrencia de producción. Migración a PWA+Supabase requiere ficha DEC-021.

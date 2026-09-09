@@ -1,0 +1,49 @@
+# Deploy demo temporal a GitHub Pages (solo simulación ficticia)
+# Publica en la rama gh-pages. Sin backend ni datos reales.
+name: Demo Pages
+
+on:
+  push:
+    branches:
+      - cursor/corte1-bugbot-dec033-f681
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: demo-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publicar demo HTML en gh-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar sitio demo
+        run: |
+          mkdir -p _site
+          cp 09-plataforma/app/index.html _site/index.html
+          touch _site/.nojekyll
+          printf '%s\n' \
+            '# Demo temporal — Proyecto Enjoy (simulación)' \
+            '' \
+            'Solo datos ficticios. MODO DEMOSTRACIÓN.' \
+            'Sin backend, sin datos reales, sin producción.' \
+            'Usa «Reiniciar datos de demostración» / «Reiniciar demo» para limpiar el estado.' \
+            > _site/README.md
+
+      - name: Publicar en gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'demo: publicar simulación Corte 1 (ficticio, temporal)'
