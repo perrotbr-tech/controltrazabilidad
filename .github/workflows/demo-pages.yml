@@ -1,0 +1,56 @@
+# Deploy demo temporal a GitHub Pages (solo simulación ficticia)
+name: Demo Pages
+
+on:
+  push:
+    branches:
+      - cursor/corte1-bugbot-dec033-f681
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: demo-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publicar demo HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Preparar sitio demo
+        run: |
+          mkdir -p _site
+          cp 09-plataforma/app/index.html _site/index.html
+          touch _site/.nojekyll
+          cat > _site/README.md <<'EOF'
+          # Demo temporal — Proyecto Enjoy (simulación)
+
+          Solo datos ficticios. MODO DEMOSTRACIÓN.
+          Sin backend, sin datos reales, sin producción.
+          Reiniciar: botón «Reiniciar datos de demostración» / «Reiniciar demo».
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
