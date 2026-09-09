@@ -21,6 +21,6 @@
 | T-18 | E2E específica SPEC-003b | Nueva: 7 salidas, horario H-022, proyección referencial bajo config | Script + capturas |
 | T-19 | Ficha pre-implementación DEC-021 | Costo, región, seguridad, respaldo, migración; sin crear cuentas | Aprobación humana de construcción |
 | T-20 | Alinear SPECDRIVE_FASE_3 a T−48h / DEC-024 | **Hecha en corrección QA 2026-09-09** (LEEME, modelo, flujos, F3-005, fuentes, plan-agentes, investigación) | Docs F3 coherentes con DEC-015/024 |
-| T-21 | CI básico GitHub Actions pre–Corte 1 (SPEC-008) | **Hecha**: workflow en PR, Node 22, permisos `contents: read`, checks + E2E Playwright 1.55.1; sin secretos ni deploy; `app/` intacta | Workflow verde en PR + `validate-ci-local.cjs` PASS |
+| T-21 | CI básico GitHub Actions pre–Corte 1 (SPEC-008) | **Hecha y verificada en GHA** (run 34312457250 success: checks 8s, e2e 33s); Node 22, `contents: read`, Playwright 1.55.1; sin secretos/deploy; `app/` intacta; PR Draft #3 | Workflow verde en PR + `validate-ci-local.cjs` PASS |
 
 El alcance actual no incluye módulos mineros literales, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo. **No implementar Corte 1 sin aprobación explícita del dueño.**
