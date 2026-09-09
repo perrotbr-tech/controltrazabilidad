@@ -1,0 +1,18 @@
+{
+  "name": "proyecto-enjoy",
+  "private": true,
+  "description": "Prototipo y pruebas del piloto Enjoy Antofagasta",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "npm run test:baseline && npm run test:config && npm run test:permisos",
+    "test:baseline": "node scripts/check-baseline.cjs",
+    "test:config": "node scripts/check-config.cjs",
+    "test:permisos": "node scripts/check-permisos.cjs",
+    "test:e2e": "node scripts/e2e-contraprueba.js"
+  },
+  "devDependencies": {
+    "playwright": "1.55.1"
+  }
+}
