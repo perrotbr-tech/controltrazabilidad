@@ -120,31 +120,56 @@ tr:last-child td{border-bottom:none}
    migración a backend sea conectar, no rediseñar. La validación real de
    servidor pertenece a la fase 2 (ver aviso en la interfaz).
    Copia de trabajo — SPEC-002 aplicada (permisos en todas las mutaciones).
-   SPEC-003 aplicada (capacidad 15 por van, 2 vans extra) · SPEC-003b: horario real 7 salidas, demanda real H-023, tope de extras por jornada.
+   SPEC-003 aplicada (capacidad 15 por van, 2 vans extra) · SPEC-003b/DEC-032: 8 salidas (23:00…06:45), demanda H-023, tope de extras por jornada.
+   SPEC-CORTE-1: inscripción híbrida T−48/T−2 (simulación en navegador — no es seguridad ni concurrencia de producción).
    ========================================================================= */
-const KEY='trazabilidad_v3';   // SPEC-003 (QA D-1): clave versionada; un estado guardado con la semilla anterior a SPEC-003 no debe cargarse
-const AHORA=new Date('2026-09-15T18:30:00');
+const KEY='trazabilidad_v4';   // DEC-032 / Corte 1: invalida semilla de 7 salidas (v3)
+let RELOJ_SERVIDOR=new Date('2026-09-15T18:30:00');
+function ahora(){return new Date(RELOJ_SERVIDOR.getTime());}
+function setRelojServidor(iso){RELOJ_SERVIDOR=new Date(iso);}
 const MES='2026-09';
 const DEMO = !location.search.includes('prod=1');   // en producción: variable de entorno
 const CIERRE_MIN=60;                                 // reservas cierran 60 min antes
+let S=null;                                          // estado; se asigna tras semilla/cargar
 
 const fmt$=v=>v==null?'—':'$'+Math.round(v).toLocaleString('es-CL');
 const fmtN=v=>v==null?'—':(''+(Math.round(v*10)/10)).replace('.',',');
 const div=(a,b)=>(!b||b===0)?null:a/b;
+/* AC-C1-17: escapar texto de usuario antes de innerHTML */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const dt=s=>new Date(s);
 const fecha=s=>{const d=dt(s);return d.getDate()+' de '+MESES[d.getMonth()];};
 const hora=s=>{const d=dt(s);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
-const dISO=d=>d.toISOString().slice(0,10);
+const dISO=d=>{const x=dt(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
 
-/* --- Jornada nocturna: comienza a las 23:00 y corre hasta las 22:59 del día siguiente --- */
+/* --- Jornada: ancla = primera salida del contrato (T0, p.ej. 23:00); madrugada pertenece al día anterior --- */
 function jornadaDe(salidaISO){
   const d=dt(salidaISO); const ini=new Date(d);
-  if(d.getHours()<23) ini.setDate(ini.getDate()-1);
-  ini.setHours(23,0,0,0);
+  const first=(S&&S.contrato&&S.contrato.salidas&&S.contrato.salidas[0])||[23,0];
+  const t0Hour=first[0], t0Min=first[1]||0;
+  if(d.getHours()<t0Hour || (d.getHours()===t0Hour && d.getMinutes()<t0Min)) ini.setDate(ini.getDate()-1);
+  ini.setHours(t0Hour,t0Min,0,0);
   const fin=new Date(ini); fin.setDate(fin.getDate()+1);
   return {inicio:ini, fin, id:dISO(ini),
     etiqueta:'Jornada nocturna '+ini.getDate()+'–'+fin.getDate()+' de '+MESES[fin.getMonth()]};
+}
+function t0Jornada(jornadaId){
+  const [y,m,d]=jornadaId.split('-').map(Number);
+  const first=(S.contrato.salidas&&S.contrato.salidas[0])||[23,0];
+  return new Date(y,m-1,d,first[0],first[1],0,0);
+}
+function ventanaJornada(jornadaId, opts){
+  const t0 = opts&&opts.t0Override ? new Date(opts.t0Override) : t0Jornada(jornadaId);
+  const apH=S.contrato.aperturaHorasAntes||48;
+  const blH=S.contrato.bloqueoHorasAntes||2;
+  const apertura=new Date(t0.getTime()-apH*3600000);
+  const bloqueo=new Date(t0.getTime()-blH*3600000);
+  const now=ahora();
+  let estado='ABIERTA', permiteMutacion=true;
+  if(now < apertura){estado='CERRADO_ANTES'; permiteMutacion=false;}
+  else if(now >= bloqueo){estado='BLOQUEADO_POR_CIERRE'; permiteMutacion=false;}
+  return {apertura:apertura.toISOString(), bloqueo:bloqueo.toISOString(), t0:t0.toISOString(), estado, permiteMutacion};
 }
 
 /* ================== SEMILLA: users, organizations, role_assignments ================== */
@@ -176,44 +201,47 @@ function semilla(){
      montoFijo:18500000, reglaDevengo:null,   // sin regla de devengo definida
      capacidadVan:15, vehiculos:4, vansExtraDisponibles:2, rutas:RUTAS,   // SPEC-003: 15 cupos garantizados por van; 2 vans extra completas a disposición
      origen:'Hotel Enjoy Antofagasta — Av. Angamos 01455',
-     frecuencias:'7 salidas por jornada desde el Enjoy según fin de turno; las vans recorren su ruta y regresan al hotel dentro del ciclo',
-     salidasPorJornada:7, salidas:[[0,15],[1,35],[2,35],[3,35],[4,35],[5,35],[6,45]],   // SPEC-003b (H-022): horario real del contratista
-     horarios:'Salidas a las 00:15, 01:35, 02:35, 03:35, 04:35, 05:35 y 06:45 (7 por jornada, por ruta — programación real del contratista); recogida cerca de las 23:00 para el ingreso de 00:00 · ida (hotel → casas) y vuelta (casas → hotel)',
+     frecuencias:'8 salidas por jornada desde el Enjoy según fin de turno (DEC-032); las vans recorren su ruta y regresan al hotel dentro del ciclo',
+     salidasPorJornada:8, salidas:[[23,0],[0,15],[1,35],[2,35],[3,35],[4,35],[5,35],[6,45]],   // DEC-032: 23:00 reservable + 00:15…06:45
+     aperturaHorasAntes:48, bloqueoHorasAntes:2,
+     modoInscripcion:'PROPUESTA_REQUIERE_CONFIRMACION',
+     horarios:'Salidas a las 23:00, 00:15, 01:35, 02:35, 03:35, 04:35, 05:35 y 06:45 (8 por jornada, por ruta — DEC-032); T0=23:00 ancla y primera salida real · ida (hotel → casas) y vuelta (casas → hotel)',
      sentido:'Ida y vuelta en cada ciclo horario; puntos de bajada y de encuentro por definir con la planilla de trabajadores (SPEC-004)',
      tiposVehiculo:'Van de pasajeros — 15 a 17 cupos por van (15 garantizados) · 4 vans en proyección, 2 por ruta', dotacion:394,
      reajuste:'IPC semestral (informativo — el monto reajustado se ingresa con trazabilidad)',
      extrasPermitidos:true, tarifaExtra:45000,
      requisitosExtra:'Demanda confirmada sobre los cupos de la salida, o contingencia operacional con evidencia',
      codigoConciliacion:'CT-2026', estado:'Vigente'},
-   servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[]};
+   servicios:[], reservas:[], extras:[], auditoria:[], conciliaciones:[], manifiestos:[], excepciones:[]};
 
   const CAP=S.contrato.capacidadVan;   // SPEC-003 REQ-010: única fuente de la capacidad por van
-  // SPEC-003b (H-023): demanda media por salida de la semana real 31-08/06-09 (personas, ambas rutas) y factor por día de la jornada
-  const BASE_SALIDA=[55,24,22,23,25,13,35];                 // 00:15 · 01:35 · 02:35 · 03:35 · 04:35 · 05:35 · 06:45
+  // DEC-032 + H-023: demanda media por salida (23:00 + semana real) y factor por día de inicio de jornada
+  const BASE_SALIDA=[40,55,24,22,23,25,13,35];             // 23:00 · 00:15 · 01:35 · 02:35 · 03:35 · 04:35 · 05:35 · 06:45
   const FACTOR_DIA=[0.7,0.8,0.9,1.0,1.2,1.4,1.4];            // domingo … sábado (jornada = noche que empieza ese día)
   const perfil=(idx,ri,dow)=>Math.round(BASE_SALIDA[idx]*FACTOR_DIA[dow]*(ri===0?0.6:0.4));
   let sid=0,rid=0;
-  for(let d=9;d<=16;d++){
+  for(let jDay=9;jDay<=15;jDay++){
     S.contrato.salidas.forEach(([hh,mm],idx)=>{
-      const salida=new Date(2026,8,d,hh,mm,0);
-      const dow=new Date(2026,8,d-1).getDay();            // día en que empieza la jornada nocturna
+      const salida=new Date(2026,8,jDay,hh,mm,0);
+      if(hh<12) salida.setDate(salida.getDate()+1); // madrugada pertenece a jornada jDay
+      const dow=new Date(2026,8,jDay).getDay();
       if(salida>new Date(2026,8,16,7,0,0)) return;
       RUTAS.forEach((R,ri)=>{
         sid++;
         const cierre=new Date(salida.getTime()-CIERRE_MIN*60000);
         const svc={id:sid,rutaIdx:ri,ruta:R.nombre,salida:salida.toISOString(),cierre:cierre.toISOString(),
-          capacidadBase:R.vans*CAP,capacidadExtra:0,vans:R.vans,ejecutado:salida<AHORA};
+          capacidadBase:R.vans*CAP,capacidadExtra:0,vans:R.vans,ejecutado:salida<ahora()};
         S.servicios.push(svc);
         let n=perfil(idx,ri,dow);
-        if(d===13&&idx===0&&ri===0) n=56; // caso extra #1: sábado 12 → 00:15, 56 solicitudes / 30 cupos (real: 93 personas); 2 vans extra ex post
-        if(d===16&&idx===0&&ri===0) n=34; // caso de prueba: salida futura con lista de espera (34/30), sin extra
-        if(d===12&&idx===5&&ri===0) n=11; // caso Rechazado: demanda (11) bajo los 30 cupos, sin justificación
+        if(jDay===12&&idx===1&&ri===0) n=56; // extra #1: sábado 12 → 00:15 del 13, 56 solicitudes / 30 cupos
+        if(jDay===15&&idx===1&&ri===0) n=34; // espera futura: 00:15 del 16
+        if(jDay===11&&idx===6&&ri===0) n=11; // Rechazado: 05:35 del 12, demanda bajo cupo
         for(let k=0;k<n;k++){ rid++;
           const p=R.paradas[k%R.paradas.length];
           S.reservas.push({id:rid,servicioId:sid,userId:((rid%299)+2),   // QA D-3: 2..300, nunca el userId 1 (Camila), que se asigna aparte
             nombre:'Trabajador '+String((rid%300)+1).padStart(3,'0'),
             parada:p[0],offset:p[1],creada:new Date(salida.getTime()-(6+k)*3600000).toISOString(),
-            estado:'pendiente'});
+            estado:'confirmada'});
         }
       });
     });
@@ -245,26 +273,48 @@ function semilla(){
   recalcularTodo(S);
   return S;
 }
-let S=cargar();
-function cargar(){try{const g=localStorage.getItem(KEY);if(g){const o=JSON.parse(g);if(o&&o.servicios&&o.contrato&&o.contrato.vansExtraDisponibles)return o;}}catch(e){}return semilla();}   // QA D-1: rechaza estados sin la configuración de SPEC-003
+S=cargar();
+function cargar(){
+  try{
+    const g=localStorage.getItem(KEY);
+    if(g){
+      const o=JSON.parse(g);
+      if(o&&o.servicios&&o.contrato&&o.contrato.vansExtraDisponibles
+        && o.contrato.salidasPorJornada===8 && o.contrato.salidas&&o.contrato.salidas[0]&&o.contrato.salidas[0][0]===23)
+        return o;
+    }
+  }catch(e){}
+  return semilla();
+}   // Corte 1 / DEC-032: solo acepta v4 con 8 salidas y T0=23:00
 function guardar(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 /* ================== CAPACIDAD Y LISTA DE ESPERA ================== */
 function capacidadTotal(svc){return svc.capacidadBase+svc.capacidadExtra;}
+function ocupaCupo(r){
+  return r&&['CONFIRMADO','confirmada','EN_ESPERA','espera'].includes(r.estado);
+}
 function recalcular(St,svc){
-  const rs=St.reservas.filter(r=>r.servicioId===svc.id&&r.estado!=='cancelada')
+  // Solo reasigna entre ocupantes de cupo; no toca PROPUESTO / DECLINADO / FUERA_MANIFIESTO / etc.
+  const rs=St.reservas.filter(r=>r.servicioId===svc.id&&ocupaCupo(r))
     .sort((a,b)=>a.creada<b.creada?-1:1);
   const cap=capacidadTotal(svc); const promovidos=[];
-  rs.forEach((r,i)=>{ const nuevo=i<cap?'confirmada':'espera';
-    if(r.estado==='espera'&&nuevo==='confirmada') promovidos.push(r);
-    r.estado=nuevo; });
+  rs.forEach((r,i)=>{
+    if(i<cap){
+      const eraEspera=r.estado==='espera'||r.estado==='EN_ESPERA';
+      const nuevo=(r.estado==='CONFIRMADO')?'CONFIRMADO':'confirmada';
+      if(eraEspera) promovidos.push(r);
+      r.estado=nuevo;
+    } else {
+      r.estado=(r.estado==='CONFIRMADO'||r.estado==='EN_ESPERA')?'EN_ESPERA':'espera';
+    }
+  });
   return promovidos;
 }
 function recalcularTodo(St){St.servicios.forEach(s=>recalcular(St,s));}
 function demanda(svc){
-  const rs=S.reservas.filter(r=>r.servicioId===svc.id&&r.estado!=='cancelada');
-  const conf=rs.filter(r=>r.estado==='confirmada').length;
-  const esp=rs.filter(r=>r.estado==='espera').length;
+  const rs=S.reservas.filter(r=>r.servicioId===svc.id&&ocupaCupo(r));
+  const conf=rs.filter(r=>r.estado==='confirmada'||r.estado==='CONFIRMADO').length;
+  const esp=rs.filter(r=>r.estado==='espera'||r.estado==='EN_ESPERA').length;
   const cap=capacidadTotal(svc);
   return {solicitudes:rs.length,confirmadas:conf,espera:esp,capacidadBase:svc.capacidadBase,
     capacidadExtra:svc.capacidadExtra,capacidad:cap,deficit:Math.max(rs.length-cap,0),
@@ -277,7 +327,11 @@ function nivelJustificacion(svc){
   if(D.solicitudes===D.capacidad) return {nivel:'Capacidad completa',clase:'c-ambar',auto:false};
   return {nivel:'No requerido por capacidad',clase:'c-gris',auto:false};
 }
-function reservaAbierta(svc){return AHORA < dt(svc.cierre);}
+function reservaAbierta(svc){
+  if(!(ahora() < dt(svc.cierre))) return false;
+  const v=ventanaJornada(jornadaDe(svc.salida).id);
+  return v.estado==='ABIERTA' && v.permiteMutacion;
+}
 
 /* ================== PERMISOS (punto único) ================== */
 const PERMISOS={
@@ -308,10 +362,144 @@ function deny(motivo,permiso){
 }
 function audita(accion,detalle,anterior,denegado){
   const u=usuario();
-  S.auditoria.unshift({fecha:AHORA.toISOString(),usuario:u?u.nombre:'(anónimo)',rol:S.contexto||'—',
+  S.auditoria.unshift({fecha:ahora().toISOString(),usuario:u?u.nombre:'(anónimo)',rol:S.contexto||'—',
     accion,detalle:detalle||'',anterior:anterior||'',denegado:!!denegado});
   guardar();
 }
+
+/* ================== CORTE 1 — inscripción híbrida (simulación) ================== */
+function precargarPropuesta({userId,servicioId,parada,offset,jornadaId}){
+  if(!requirePermission('crear:reserva',{tipo:'reserva',userId})) return {ok:false,error:'NO_AUTORIZADO'};
+  const svc=S.servicios.find(s=>s.id===servicioId);
+  if(!svc) return {ok:false,error:'SERVICIO'};
+  const jid=jornadaId||jornadaDe(svc.salida).id;
+  const v=ventanaJornada(jid);
+  if(v.estado!=='ABIERTA'||!v.permiteMutacion){
+    audita('BLOQUEADO_POR_CIERRE','Precarga rechazada — jornada '+jid+' estado '+v.estado,'');
+    return {ok:false,error:'BLOQUEADO_POR_CIERRE'};
+  }
+  let r=S.reservas.find(x=>x.userId===userId&&x.jornadaId===jid&&x.estado==='PROPUESTO');
+  const u=S.users.find(x=>x.id===userId);
+  if(r){
+    const ant=r.servicioId;
+    r.servicioId=servicioId; r.parada=parada; r.offset=offset;
+    r.versionPropuesta=(r.versionPropuesta||1)+1;
+    audita('Propuesta actualizada','jornada '+jid+' · svc '+servicioId+' · v'+r.versionPropuesta,'svc '+ant);
+    guardar(); return r;
+  }
+  const id=Math.max(0,...S.reservas.map(x=>x.id))+1;
+  r={id,servicioId,userId,nombre:u?u.nombre:'',parada,offset,
+    creada:ahora().toISOString(),estado:'PROPUESTO',jornadaId:jid,versionPropuesta:1};
+  S.reservas.push(r);
+  audita('Propuesta precargada','jornada '+jid+' · '+hora(svc.salida)+' · '+parada,'');
+  guardar(); return r;
+}
+function confirmarInscripcion(id){
+  const r=S.reservas.find(x=>x.id===id);
+  if(!r) return {ok:false,error:'NO_ENCONTRADA'};
+  if(!requirePermission('crear:reserva',{tipo:'reserva',userId:r.userId})) return {ok:false,error:'NO_AUTORIZADO'};
+  const svc=S.servicios.find(s=>s.id===r.servicioId);
+  const jid=r.jornadaId||jornadaDe(svc.salida).id;
+  const v=ventanaJornada(jid);
+  if(v.estado!=='ABIERTA'||!v.permiteMutacion){
+    audita('BLOQUEADO_POR_CIERRE','Confirmación rechazada — jornada '+jid+' estado '+v.estado,'PROPUESTO');
+    return {ok:false,error:'BLOQUEADO_POR_CIERRE'};
+  }
+  const D=demanda(svc);
+  const ant=r.estado;
+  r.estado=D.libres>0?'CONFIRMADO':'EN_ESPERA';
+  audita('Inscripción confirmada',svc.ruta+' '+hora(svc.salida)+' · '+r.estado,ant);
+  guardar(); return {ok:true,reserva:r};
+}
+function cambiarInscripcion(id, nuevoServicioId, opts){
+  const r=S.reservas.find(x=>x.id===id);
+  if(!r) return {ok:false,error:'NO_ENCONTRADA'};
+  if(!requirePermission('crear:reserva',{tipo:'reserva',userId:r.userId})) return {ok:false,error:'NO_AUTORIZADO'};
+  const oldSvc=S.servicios.find(s=>s.id===r.servicioId);
+  const nuevo=S.servicios.find(s=>s.id===nuevoServicioId);
+  if(!nuevo) return {ok:false,error:'SERVICIO'};
+  const jid=r.jornadaId||jornadaDe(oldSvc.salida).id;
+  const v=ventanaJornada(jid);
+  if(v.estado!=='ABIERTA'||!v.permiteMutacion){
+    audita('BLOQUEADO_POR_CIERRE','Cambio rechazado — jornada '+jid,'svc '+r.servicioId);
+    return {ok:false,error:'BLOQUEADO_POR_CIERRE'};
+  }
+  const D=demanda(nuevo);
+  const aceptaEspera=opts&&opts.aceptaEspera;
+  const eraConfirmado=r.estado==='CONFIRMADO'||r.estado==='confirmada';
+  if(eraConfirmado&&D.libres<=0&&!aceptaEspera){
+    audita('Cambio revertido','Sin cupo en destino '+nuevoServicioId,'svc '+r.servicioId);
+    return {ok:false,error:'SIN_CUPO'};
+  }
+  const oldId=r.servicioId;
+  r.servicioId=nuevoServicioId;
+  if(opts&&opts.parada!=null) r.parada=opts.parada;
+  if(opts&&opts.offset!=null) r.offset=opts.offset;
+  if(eraConfirmado){
+    if(D.libres<=0&&aceptaEspera) r.estado='EN_ESPERA';
+    else r.estado='CONFIRMADO';
+  }
+  recalcular(S,oldSvc);
+  recalcular(S,nuevo);
+  audita('Inscripción cambiada','svc '+oldId+' → '+nuevoServicioId+' · '+r.estado,'svc '+oldId);
+  guardar(); return {ok:true,reserva:r};
+}
+function rechazarInscripcion(id){
+  const r=S.reservas.find(x=>x.id===id);
+  if(!r) return {ok:false,error:'NO_ENCONTRADA'};
+  if(!requirePermission('cancelar:reserva-propia',{tipo:'reserva',userId:r.userId})) return {ok:false,error:'NO_AUTORIZADO'};
+  const svc=S.servicios.find(s=>s.id===r.servicioId);
+  const jid=r.jornadaId||(svc&&jornadaDe(svc.salida).id);
+  if(jid){
+    const v=ventanaJornada(jid);
+    if(v.estado!=='ABIERTA'||!v.permiteMutacion){
+      audita('BLOQUEADO_POR_CIERRE','Rechazo/declinación bloqueada — jornada '+jid,r.estado);
+      return {ok:false,error:'BLOQUEADO_POR_CIERRE'};
+    }
+  }
+  const ant=r.estado;
+  r.estado='DECLINADO';
+  audita('Inscripción declinada',svc?svc.ruta+' '+hora(svc.salida):'','→ DECLINADO desde '+ant);
+  guardar(); return {ok:true,reserva:r};
+}
+function aplicarCierreJornada(jornadaId){
+  const afectadas=S.reservas.filter(r=>{
+    if(r.estado!=='PROPUESTO') return false;
+    if(r.jornadaId===jornadaId) return true;
+    const svc=S.servicios.find(s=>s.id===r.servicioId);
+    return svc&&jornadaDe(svc.salida).id===jornadaId;
+  });
+  afectadas.forEach(r=>{ r.estado='FUERA_MANIFIESTO'; });
+  const confirmados=S.reservas.filter(r=>{
+    if(!(r.estado==='CONFIRMADO'||r.estado==='confirmada')) return false;
+    const svc=S.servicios.find(s=>s.id===r.servicioId);
+    return svc&&jornadaDe(svc.salida).id===jornadaId;
+  });
+  if(!S.manifiestos) S.manifiestos=[];
+  const version=(S.manifiestos.filter(m=>m.jornadaId===jornadaId).length)+1;
+  const ids=confirmados.map(r=>r.id);
+  const payload=JSON.stringify({jornadaId,ids,version});
+  let h=0; for(let i=0;i<payload.length;i++) h=((h<<5)-h)+payload.charCodeAt(i)|0;
+  const snap={jornadaId,version,hash:'M'+Math.abs(h).toString(16),confirmados:ids,
+    conteos:{confirmados:ids.length,fueraManifiesto:afectadas.length,espera:S.reservas.filter(r=>{
+      const svc=S.servicios.find(s=>s.id===r.servicioId);
+      return svc&&jornadaDe(svc.salida).id===jornadaId&&(r.estado==='espera'||r.estado==='EN_ESPERA');
+    }).length},fecha:ahora().toISOString()};
+  S.manifiestos.push(snap);
+  audita('Cierre de jornada','Manifiesto '+jornadaId+' v'+version+' · confirmados '+ids.length+' · fuera '+afectadas.length,'ABIERTA');
+  guardar(); return snap;
+}
+function registrarExcepcionPostCierre({userId,servicioId,motivo,tipo}){
+  // Solo mandante (autorizar:extra) — no autoasignación de rol
+  if(!requirePermission('autorizar:extra')) return {ok:false,error:'NO_AUTORIZADO'};
+  if(!S.excepciones) S.excepciones=[];
+  const id=Math.max(0,...S.excepciones.map(e=>e.id),0)+1;
+  const excepcion={id,userId,servicioId,motivo,tipo,fecha:ahora().toISOString(),aprobadoPor:S.sesion};
+  S.excepciones.push(excepcion);
+  audita('Excepción post-cierre',(tipo||'')+' · '+motivo+' · user '+userId+' svc '+servicioId,'');
+  guardar(); return {ok:true,excepcion};
+}
+
 const RUTA_INICIO={TRABAJADOR:'mis-traslados',CONTRATISTA:'operacion',MANDANTE:'control-contractual',ADMINISTRADOR:'administracion'};
 const MENUS={
   TRABAJADOR:[['mis-traslados','Mis traslados'],['historial','Historial'],['perfil','Mi perfil']],
@@ -364,7 +552,7 @@ function render(){
         ${roles.map(r=>`<option value="${r.rol}" ${r.rol===S.contexto?'selected':''}>${r.rol}</option>`).join('')}</select>`:''}
       <button class="sec" style="padding:3px 10px;font-size:12px;color:#16202A" onclick="logout()">Salir</button></div>
     </div>
-    ${DEMO?'<span class="demo-flag">MODO DEMOSTRACIÓN</span>':''}
+    ${DEMO?'<span class="demo-flag">MODO DEMOSTRACIÓN · SIMULACIÓN CORTE 1</span>':''}
   </div>
   <div class="nav">${menu.map(([id,nom])=>`<button class="${S.vista===id?'activo':''}" onclick="irA('${id}')">${nom}</button>`).join('')}</div>
   <div class="cont" id="cont"></div>`;
@@ -399,36 +587,94 @@ function vDenegado(){
 }
 
 /* ---------- TRABAJADOR ---------- */
+function chipEstadoReserva(est){
+  if(est==='CONFIRMADO'||est==='confirmada') return {cls:'c-verde',txt:est==='CONFIRMADO'?'Confirmado':'Reserva confirmada'};
+  if(est==='PROPUESTO') return {cls:'c-azul',txt:'Propuesto — pendiente de confirmar'};
+  if(est==='EN_ESPERA'||est==='espera') return {cls:'c-ambar',txt:'En espera de vehículo adicional'};
+  if(est==='DECLINADO') return {cls:'c-gris',txt:'No viajaré'};
+  if(est==='FUERA_MANIFIESTO'||est==='BLOQUEADO_SIN_CONFIRMAR') return {cls:'c-rojo',txt:'Sin confirmar al cierre'};
+  return {cls:'c-gris',txt:est||'—'};
+}
+function cuentaRegresivaBloqueo(jornadaId){
+  const v=ventanaJornada(jornadaId);
+  const bl=dt(v.bloqueo); const ms=bl.getTime()-ahora().getTime();
+  if(ms<=0) return 'Ventana cerrada (bloqueo '+hora(v.bloqueo)+')';
+  const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000);
+  return 'Quedan '+h+'h '+m+'min para el bloqueo ('+hora(v.bloqueo)+')';
+}
 function tarjetaServicio(s,mia){
   const J=jornadaDe(s.salida); const D=demanda(s); const R=S.contrato.rutas[s.rutaIdx];
   const abierta=reservaAbierta(s);
   const paso=mia?new Date(dt(s.salida).getTime()+ (mia.offset||0)*60000):null;
+  const ch=mia?chipEstadoReserva(mia.estado):null;
+  const vJ=ventanaJornada(J.id);
   return `<div class="tarjeta">
     <div class="sub">${J.etiqueta}</div>
     <h3 style="margin-top:2px">${s.ruta} · ${hora(s.salida)}</h3>
     <div class="sub">${fecha(s.salida)} · sale del Enjoy · ciclo ${R.ciclo}</div>
-    ${mia?`<div style="margin-top:8px"><b>${mia.parada}</b><div class="sub">Paso estimado por tu punto: ${hora(paso.toISOString())}</div></div>`:''}
+    ${mia?`<div style="margin-top:8px"><b>${esc(mia.parada)}</b><div class="sub">Paso estimado por tu punto: ${hora(paso.toISOString())}</div></div>`:''}
     <div class="fila" style="align-items:center;margin-top:9px">
       <div><span class="sub">Capacidad</span><br><b>${D.confirmadas}/${D.capacidad}</b> ${D.capacidadExtra?`<span class="chip c-ambar">+${D.capacidadExtra} autorizados</span>`:''}
         <div class="barra"><i class="b-conf" style="width:${(D.confirmadas/Math.max(D.solicitudes,D.capacidad))*100}%"></i><i class="b-esp" style="width:${(D.espera/Math.max(D.solicitudes,D.capacidad))*100}%"></i></div>
         <div class="sub" style="margin-top:4px">${D.solicitudes} solicitudes · ${D.confirmadas} confirmadas · ${D.espera} en espera</div></div>
       <div style="text-align:right">
-        ${mia?`<span class="chip ${mia.estado==='confirmada'?'c-verde':'c-ambar'}">${mia.estado==='confirmada'?'Reserva confirmada':'En espera de vehículo adicional'}</span>`
+        ${mia?`<span class="chip ${ch.cls}">${ch.txt}</span>`
              :`<span class="chip c-gris">Sin reserva</span>`}
-        <div class="sub" style="margin-top:5px">${abierta?'Cierre de reservas: '+hora(s.cierre)+' · '+fecha(s.cierre):'<b>Reserva cerrada</b>'}</div>
+        <div class="sub" style="margin-top:5px">${vJ.estado==='ABIERTA'?cuentaRegresivaBloqueo(J.id):(vJ.estado==='BLOQUEADO_POR_CIERRE'?'Bloqueado por cierre de jornada':'Inscripción aún no abierta')}</div>
+        <div class="sub">${abierta?'Cierre de reservas salida: '+hora(s.cierre):'<b>Reserva cerrada</b>'}</div>
       </div>
     </div>
     <div class="acciones">
-      ${mia? (abierta?`<button class="sec" onclick="cancelar(${mia.id})">Cancelar reserva</button>`:`<button class="sec" disabled>Reserva cerrada</button>`)
-           : (abierta?`<button class="amb" onclick="abreReserva(${s.id})">${D.solicitudes>=D.capacidad?'Solicitar cupo (lista de espera)':'Reservar cupo'}</button>`:`<button disabled>Reserva cerrada</button>`)}
+      ${mia && abierta && (mia.estado==='PROPUESTO'||mia.estado==='CONFIRMADO'||mia.estado==='confirmada'||mia.estado==='EN_ESPERA'||mia.estado==='espera')?`
+        ${mia.estado==='PROPUESTO'?`<button class="ok" onclick="uiConfirmar(${mia.id})">Confirmar</button>`:''}
+        <button class="sec" onclick="uiCambiar(${mia.id},${s.id})">Cambiar</button>
+        <button class="no" onclick="uiRechazar(${mia.id})">No viajaré</button>`
+        : mia? (abierta?`<button class="sec" onclick="cancelar(${mia.id})">Cancelar reserva</button>`:`<button class="sec" disabled>Reserva cerrada</button>`)
+           : (abierta?`<button class="amb" onclick="abreReserva(${s.id})">${D.solicitudes>=D.capacidad?'Solicitar cupo (lista de espera)':'Reservar / proponer'}</button>`:`<button disabled>Reserva cerrada</button>`)}
     </div></div>`;
 }
 function vMisTraslados(){
   if(!requirePermission('ver:mis-traslados')) return vDenegado();
   const u=usuario();
-  const futuros=S.servicios.filter(s=>!s.ejecutado).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,10);
-  return `<h1>Mis traslados</h1><p class="sub">Reserva tu cupo. Si la salida está llena, quedas en espera de vehículo adicional y el contratista lo tramita.</p>
-  ${futuros.map(s=>tarjetaServicio(s,S.reservas.find(r=>r.servicioId===s.id&&r.userId===u.id&&r.estado!=='cancelada'))).join('')}`;
+  const futuros=S.servicios.filter(s=>!s.ejecutado).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,12);
+  const activa=S.reservas.find(r=>r.userId===u.id&&['PROPUESTO','CONFIRMADO','confirmada','EN_ESPERA','espera'].includes(r.estado)
+    &&S.servicios.find(s=>s.id===r.servicioId&&!s.ejecutado));
+  const prox=activa?S.servicios.find(s=>s.id===activa.servicioId):null;
+  const banner=`<div class="advertencia"><b>Simulación Corte 1 — no es seguridad ni concurrencia de producción</b>Inscripción híbrida T−48 / T−2 (DEC-032): propuesta ≠ confirmado. El pago fijo contractual permanece separado.</div>`;
+  let proxHtml='';
+  if(prox&&activa){
+    const J=jornadaDe(prox.salida); const ch=chipEstadoReserva(activa.estado);
+    proxHtml=`<div class="tarjeta" style="border-color:var(--azul)"><h2>Próximo traslado</h2>
+      <p><b>${prox.ruta} · ${hora(prox.salida)}</b> — ${fecha(prox.salida)}</p>
+      <p class="sub">${esc(activa.parada)} · <span class="chip ${ch.cls}">${ch.txt}</span></p>
+      <p class="sub">${cuentaRegresivaBloqueo(J.id)}</p>
+      <div class="acciones">
+        ${reservaAbierta(prox)&&activa.estado==='PROPUESTO'?`<button class="ok" onclick="uiConfirmar(${activa.id})">Confirmar</button>`:''}
+        ${reservaAbierta(prox)?`<button class="sec" onclick="uiCambiar(${activa.id},${prox.id})">Cambiar</button>
+        <button class="no" onclick="uiRechazar(${activa.id})">No viajaré</button>`:'<span class="chip c-gris">Ventana de inscripción cerrada</span>'}
+      </div></div>`;
+  }
+  return `<h1>Mis traslados</h1>${banner}
+  <p class="sub">Confirma tu propuesta antes del bloqueo (T−2). La salida 23:00 es reservable. Si la salida está llena, quedas en espera de vehículo adicional.</p>
+  ${proxHtml}
+  ${futuros.map(s=>tarjetaServicio(s,S.reservas.find(r=>r.servicioId===s.id&&r.userId===u.id&&!['cancelada','DECLINADO','FUERA_MANIFIESTO','BLOQUEADO_SIN_CONFIRMAR'].includes(r.estado)))).join('')}`;
+}
+function uiConfirmar(id){const r=confirmarInscripcion(id);if(!r.ok)alert(r.error==='BLOQUEADO_POR_CIERRE'?'Bloqueado por cierre de jornada.':(r.error||'No se pudo confirmar'));render();}
+function uiRechazar(id){const r=rechazarInscripcion(id);if(!r.ok)alert(r.error==='BLOQUEADO_POR_CIERRE'?'Bloqueado por cierre de jornada.':(r.error||'No se pudo declinar'));render();}
+function uiCambiar(id,svcActual){
+  const r0=S.reservas.find(x=>x.id===id); if(!r0)return;
+  const jid=r0.jornadaId||jornadaDe(S.servicios.find(s=>s.id===r0.servicioId).salida).id;
+  const opts=S.servicios.filter(s=>!s.ejecutado&&s.id!==svcActual&&jornadaDe(s.salida).id===jid&&s.rutaIdx===0);
+  modal(`<h2>Cambiar inscripción</h2><p class="sub">Elige otra salida de la misma jornada.</p>
+    <label>Nueva salida</label><select id="mCambiar">${opts.map(s=>`<option value="${s.id}">${hora(s.salida)} · ${s.ruta} · libres ${demanda(s).libres}</option>`).join('')}</select>
+    <div class="acciones"><button class="amb" onclick="uiCambiarOk(${id})">Cambiar</button><button class="sec" onclick="cierraModal()">Cancelar</button></div>`);
+}
+function uiCambiarOk(id){
+  const nid=+document.getElementById('mCambiar').value;
+  const s=S.servicios.find(x=>x.id===nid); const R=S.contrato.rutas[s.rutaIdx]; const p=R.paradas[0];
+  const r=cambiarInscripcion(id,nid,{parada:p[0],offset:p[1]});
+  if(!r.ok)alert(r.error||'No se pudo cambiar');
+  cierraModal(); render();
 }
 function vHistorial(){
   if(!requirePermission('ver:mis-traslados')) return vDenegado();
@@ -437,7 +683,7 @@ function vHistorial(){
     .filter(x=>x.s&&x.s.ejecutado).sort((a,b)=>a.s.salida<b.s.salida?1:-1).slice(0,20);
   return `<h1>Historial</h1><p class="sub">Traslados ya ejecutados.</p>
   <div class="tarjeta">${mias.length?`<table><thead><tr><th>Jornada</th><th>Salida</th><th>Punto</th><th>Estado</th></tr></thead><tbody>
-   ${mias.map(({r,s})=>`<tr><td>${jornadaDe(s.salida).etiqueta}</td><td>${fecha(s.salida)} ${hora(s.salida)}<br><span class="sub">${s.ruta}</span></td><td>${r.parada}</td><td><span class="chip ${r.estado==='confirmada'?'c-verde':'c-ambar'}">${r.estado}</span></td></tr>`).join('')}
+   ${mias.map(({r,s})=>`<tr><td>${jornadaDe(s.salida).etiqueta}</td><td>${fecha(s.salida)} ${hora(s.salida)}<br><span class="sub">${s.ruta}</span></td><td>${esc(r.parada)}</td><td><span class="chip ${r.estado==='confirmada'||r.estado==='CONFIRMADO'?'c-verde':'c-ambar'}">${esc(r.estado)}</span></td></tr>`).join('')}
   </tbody></table>`:'<div class="vacio">Sin traslados anteriores.</div>'}</div>`;
 }
 function vPerfil(){
@@ -466,12 +712,11 @@ function reservar(sid){
   if(!requirePermission('crear:reserva')){alert('No autorizado.');return;}
   if(!reservaAbierta(s)){alert('Las reservas de esta salida están cerradas.');return;}
   const u=usuario(); const v=document.getElementById('mParada').value.split('|');
-  const id=Math.max(0,...S.reservas.map(r=>r.id))+1;
-  S.reservas.push({id,servicioId:sid,userId:u.id,nombre:u.nombre,parada:v[0],offset:+v[1],
-    creada:AHORA.toISOString(),estado:'pendiente'});
-  recalcular(S,s);
-  const mia=S.reservas.find(r=>r.id===id);
-  audita('Reserva creada',s.ruta+' '+hora(s.salida)+' · '+v[0]+' · '+mia.estado,'');
+  const jid=jornadaDe(s.salida).id;
+  // Modo híbrido: precarga PROPUESTO (no consume cupo) — el trabajador debe confirmar
+  const p=precargarPropuesta({userId:u.id,servicioId:sid,parada:v[0],offset:+v[1],jornadaId:jid});
+  if(!p||p.ok===false){alert((p&&p.error)||'No se pudo crear la propuesta');return;}
+  audita('Propuesta desde UI',s.ruta+' '+hora(s.salida)+' · '+v[0],'');
   guardar(); cierraModal(); render();
 }
 function cancelar(rid){
@@ -488,7 +733,7 @@ function cancelar(rid){
 /* ---------- CONTRATISTA ---------- */
 function vOperacion(){
   if(!requirePermission('ver:operacion')) return vDenegado();
-  const svc=S.servicios.filter(s=>dt(s.salida)>=new Date(AHORA.getTime()-36*3600000)).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,24);
+  const svc=S.servicios.filter(s=>dt(s.salida)>=new Date(ahora().getTime()-36*3600000)).sort((a,b)=>a.salida<b.salida?-1:1).slice(0,24);
   let jorAct=null; let filas='';
   svc.forEach(s=>{ const J=jornadaDe(s.salida); const D=demanda(s);
     if(J.id!==jorAct){jorAct=J.id; filas+=`<tr><td colspan="5" style="background:var(--suave);font-weight:700">${J.etiqueta}</td></tr>`;}
@@ -547,7 +792,7 @@ function creaSolicitud(sid){
   const id=Math.max(0,...S.extras.map(e=>e.id))+1;
   S.extras.push({id,servicioId:sid,motivo:(razon?razon+' — ':'')+motivo,tipo:N.auto?'cuantitativa':'operacional',
     vans,capacidadExtra:vans*S.contrato.capacidadVan,tarifa:S.contrato.tarifaExtra*vans,estado:'Solicitado',
-    solicitadoPor:S.sesion,fechaSolicitud:AHORA.toISOString(),autorizadoPor:null,fechaAutorizacion:null,motivoAutorizacion:null,
+    solicitadoPor:S.sesion,fechaSolicitud:ahora().toISOString(),autorizadoPor:null,fechaAutorizacion:null,motivoAutorizacion:null,
     evidencia:{patente:false,salida:false,manifiesto:false},pasajerosExtra:0,reclasificacion:null});
   audita('Extra #'+id+' solicitado',(razon?razon+' — ':'')+motivo,''); guardar(); cierraModal(); render();
 }
@@ -591,7 +836,7 @@ function tarjetaExtra(e){
    <div class="sub">${jornadaDe(s.salida).etiqueta}</div>
    <h3>Extra #${e.id} — ${s.ruta} · ${fecha(s.salida)} ${hora(s.salida)}</h3>
    <div class="sub">${e.vans} van(es) · +${e.capacidadExtra} cupos · ${fmt$(e.tarifa)}</div>
-   <div class="sub" style="margin-top:3px">Motivo: ${e.motivo}</div>
+   <div class="sub" style="margin-top:3px">Motivo: ${esc(e.motivo)}</div>
    ${e.observacion?`<div class="sub" style="color:var(--rojo);margin-top:3px">Observación: ${e.observacion}</div>`:''}
    <div style="margin-top:6px"><span class="chip ${['Rechazado','Observado'].includes(e.estado)?'c-rojo':e.estado==='Conciliado'?'c-verde':'c-ambar'}">${e.estado}</span>
     ${['Utilizado','No utilizado','Observado','Conciliado'].includes(e.estado)?`<span class="chip c-gris">${clasifica(e)}</span>`:''}
@@ -616,16 +861,16 @@ function cambia(id,est,m){if(!requirePermission('operar:extra')){alert('No autor
 function subsana(id){if(!requirePermission('registrar:evidencia')){alert('No autorizado.');return;}const e=S.extras.find(x=>x.id===id);if(!respaldado(e)){alert('Faltan condiciones de respaldo.');return;}
   const r=transicion(e,'Conciliado','Observación subsanada','registrar:evidencia');   // SPEC-002 R1 (QA D-1): sellar solo si la transición fue aceptada
   if(!r.ok){alert(r.error);render();return;}
-  e.subsanado='Evidencia completada el '+fecha(AHORA.toISOString());guardar();render();}
+  e.subsanado='Evidencia completada el '+fecha(ahora().toISOString());guardar();render();}
 
 /* ---------- MANDANTE ---------- */
 const ADV=`<div class="advertencia"><b>Nota contractual</b>Los indicadores de costo por usuario y ocupación miden eficiencia operacional. No modifican el monto contractual salvo que el contrato establezca expresamente un ajuste.</div>`;
 function periodo(){
   const svcMes=S.servicios.filter(s=>s.salida.startsWith(MES));
   const hasta=svcMes.filter(s=>s.ejecutado);
-  const rsHasta=S.reservas.filter(r=>r.estado==='confirmada'&&hasta.some(s=>s.id===r.servicioId));
+  const rsHasta=S.reservas.filter(r=>(r.estado==='confirmada'||r.estado==='CONFIRMADO')&&hasta.some(s=>s.id===r.servicioId));
   const capHasta=hasta.reduce((a,s)=>a+capacidadTotal(s),0);
-  // proyección: el mes completo tiene 30 días × 7 salidas × 2 rutas (H-022, SPEC-003b)
+  // proyección: 30 días × salidasPorJornada × rutas (DEC-032; no hardcode 420)
   const svcMesCompleto=30*S.contrato.salidasPorJornada*S.contrato.rutas.length;
   const factor=div(svcMesCompleto,hasta.length)||1;
   return {ejecutados:hasta.length,programados:svcMes.length,transportados:rsHasta.length,capacidad:capHasta,
@@ -696,7 +941,7 @@ function vSolicitudes(){
      <tr><td>Déficit</td><td class="n">${D.deficit}</td></tr>
      <tr><td>Capacidad propuesta</td><td class="n">+${e.capacidadExtra}</td></tr>
      <tr><td>Nivel de justificación</td><td class="n"><span class="chip ${N.clase}">${N.nivel}</span></td></tr>
-     <tr><td>Motivo del contratista</td><td>${e.motivo}</td></tr>
+     <tr><td>Motivo del contratista</td><td>${esc(e.motivo)}</td></tr>
     </tbody></table>
     <div class="acciones"><button class="ok" onclick="decide(${e.id},'Autorizado')">Autorizar</button>
      <button class="no" onclick="decide(${e.id},'Rechazado')">Rechazar</button></div></div>`;}).join('')
@@ -726,7 +971,7 @@ function decideOk(id,estado){
   if(e.estado==='Solicitado'){const r0=transicion(e,'En revisión','Paso a revisión');if(!r0.ok){alert(r0.error);return;}}
   const r=transicion(e,estado,m); if(!r.ok){alert(r.error);return;}
   if(estado==='Autorizado'){
-    e.autorizadoPor=S.sesion; e.fechaAutorizacion=AHORA.toISOString(); e.motivoAutorizacion=m;
+    e.autorizadoPor=S.sesion; e.fechaAutorizacion=ahora().toISOString(); e.motivoAutorizacion=m;
     const s=S.servicios.find(x=>x.id===e.servicioId);
     const antes=demanda(s);
     s.capacidadExtra+=e.capacidadExtra;
@@ -787,7 +1032,7 @@ function cierraPeriodo(){
   if(obs){alert('Resuelve los '+obs+' observado(s) para cerrar.');return;}   // SPEC-002 R4: regla en la función, no solo en el botón
   const X=extrasResumen(); const n=S.conciliaciones.length+1;
   const correlativo=S.contrato.codigoConciliacion+'-'+String(n).padStart(2,'0');
-  S.conciliaciones.push({mes:MES,correlativo,fecha:AHORA.toISOString(),fijo:S.contrato.montoFijo,
+  S.conciliaciones.push({mes:MES,correlativo,fecha:ahora().toISOString(),fijo:S.contrato.montoFijo,
     respaldado:X.montoRespaldado,observado:X.montoObservado,total:S.contrato.montoFijo+X.montoRespaldado,cerradoPor:S.sesion});
   S.extras.forEach(e=>{if(['Utilizado','No utilizado'].includes(e.estado)&&respaldado(e))transicion(e,'Conciliado','Cierre del período');});
   audita('Período '+MES+' cerrado — '+correlativo,'Total '+fmt$(S.contrato.montoFijo+X.montoRespaldado),'abierto');
@@ -831,7 +1076,7 @@ function vAuditoria(){
   const p=S.contexto==='CONTRATISTA'?'ver:trazabilidad-operacional':'ver:trazabilidad';
   if(!requirePermission(p)) return vDenegado();
   return `<h1>Trazabilidad</h1><p class="sub">Sesiones, decisiones, cambios de capacidad, accesos denegados — con usuario, rol, fecha y valor anterior.</p>
-  <div class="tarjeta">${S.auditoria.slice(0,70).map(a=>`<div class="aud ${a.denegado?'denegado':''}"><b>${fecha(a.fecha)} ${hora(a.fecha)}</b> · ${a.usuario} (${a.rol}) — ${a.accion}${a.detalle?': '+a.detalle:''}${a.anterior?' <span class="sub">(antes: '+a.anterior+')</span>':''}</div>`).join('')}</div>`;
+  <div class="tarjeta">${S.auditoria.slice(0,70).map(a=>`<div class="aud ${a.denegado?'denegado':''}"><b>${fecha(a.fecha)} ${hora(a.fecha)}</b> · ${esc(a.usuario)} (${esc(a.rol)}) — ${esc(a.accion)}${a.detalle?': '+esc(a.detalle):''}${a.anterior?' <span class="sub">(antes: '+esc(a.anterior)+')</span>':''}</div>`).join('')}</div>`;
 }
 /* ---------- ADMINISTRADOR ---------- */
 function vAdmin(){
@@ -861,7 +1106,10 @@ function cierraModal(){document.getElementById('velo').classList.remove('abierto
 document.getElementById('velo').addEventListener('click',e=>{if(e.target.id==='velo')cierraModal();});
 
 window.app={get S(){return S},requirePermission,demanda,nivelJustificacion,jornadaDe,recalcular,capacidadTotal,
-  respaldado,clasifica,transicion,periodo,extrasResumen,div,reservaAbierta,login,logout,irA,cambiarContexto,
+  respaldado,clasifica,transicion,periodo,extrasResumen,div,esc,reservaAbierta,login,logout,irA,cambiarContexto,
+  ahora,setRelojServidor,ventanaJornada,t0Jornada,ocupaCupo,
+  precargarPropuesta,confirmarInscripcion,cambiarInscripcion,rechazarInscripcion,
+  aplicarCierreJornada,registrarExcepcionPostCierre,
   reset:()=>{S=semilla();guardar();render();}};
 render();
 </script>

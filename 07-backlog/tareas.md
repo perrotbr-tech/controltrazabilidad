@@ -5,7 +5,7 @@
 | T-02 | Fuentes/IDs/CSV y V-10 | V-10 parcial; pendiente PDF fechado AllRide y demo (DEC-011, contacto humano) | URLs y matriz coherentes |
 | T-03 | SPEC-001 alta trabajador y cadena de acceso | D1–D6 decididas (DEC-006/010); **ampliar con DEC-014/015/017/023** (híbrido, ventana, no auto-confirmar). Plantilla 12 secciones + Corte 1 | AC y política definidos |
 | T-04 | ADR-001 / ADR-F3-001 backend y costo | **DEC-021**: arquitectura recomendada PWA+Supabase+Vercel; falta ficha costo/región/seguridad/respaldo/migración antes de implementar | Ficha concreta para Eduardo |
-| T-05 | Implementar Corte 1 (identidad + inscripción híbrida) | Depende de: aprobación de construcción + (si backend) ficha DEC-021. Simulación `app/` solo con autorización explícita | AC de SPEC-CORTE-1 |
+| T-05 | Implementar Corte 1 (identidad + inscripción híbrida) | **Autorizado 2026-09-09**: simulación en `app/` (DEC-032, SPEC-CORTE-1). Sin backend/deploy. | AC de SPEC-CORTE-1 |
 | T-06 | S4 operación Enjoy | Datos/entrevistas pendientes | As-is y contrato anonimizado |
 | T-07 | S5 síntesis comprar/configurar/construir | Depende de evidencia + DEC-011 | Recomendación con costos |
 | T-08 | Extras/evidencia/cierre inmutable | Cubierto en Corte 3 (DEC-019) + SPEC-005 / F3-004 | Cierre reproducible |
@@ -23,4 +23,4 @@
 | T-20 | Alinear SPECDRIVE_FASE_3 a T−48h / DEC-024 | **Hecha en corrección QA 2026-09-09** (LEEME, modelo, flujos, F3-005, fuentes, plan-agentes, investigación) | Docs F3 coherentes con DEC-015/024 |
 | T-21 | CI básico GitHub Actions pre–Corte 1 (SPEC-008) | **Hecha y verificada en GHA** (run 34312457250 success: checks 8s, e2e 33s); Node 22, `contents: read`, Playwright 1.55.1; sin secretos/deploy; `app/` intacta; PR Draft #3 | Workflow verde en PR + `validate-ci-local.cjs` PASS |
 
-El alcance actual no incluye módulos mineros literales, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo. **No implementar Corte 1 sin aprobación explícita del dueño.**
+El alcance actual no incluye módulos mineros literales, alojamiento o alimentación. Evitar dividir el MVP en múltiples servicios antes de justificarlo. **Corte 1 simulación en `app/` autorizada (2026-09-09); backend/deploy siguen prohibidos sin ficha DEC-021.**

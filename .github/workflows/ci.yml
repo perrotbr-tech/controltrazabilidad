@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   checks:
-    name: Baseline, config y permisos
+    name: Baseline, config, permisos y Corte 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -39,6 +39,9 @@ jobs:
 
       - name: check-permisos (app)
         run: node scripts/check-permisos.cjs
+
+      - name: check-corte1 (app)
+        run: node scripts/check-corte1.cjs
 
   e2e:
     name: Contraprueba E2E Playwright
@@ -70,3 +73,6 @@ jobs:
         env:
           CAPTURAS: ${{ runner.temp }}/capturas-e2e
         run: node scripts/e2e-contraprueba.js
+
+      - name: e2e-regresion-modal-extra
+        run: node scripts/check-e2e-regresion-salir-extra.cjs
