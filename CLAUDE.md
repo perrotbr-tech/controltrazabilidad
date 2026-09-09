@@ -14,7 +14,7 @@ El piloto es transporte del Hotel Enjoy Antofagasta; minería es expansión post
 
 ## Invariantes
 - Fijo contractual separado del uso y extras; ningún KPI genera descuentos o pagos automáticos (DEC-031).
-- Zona America/Santiago; reloj de verdad del servidor. La **primera salida (T0), catálogo de salidas, apertura/bloqueo y flota son configuración de jornada** (DEC-015/022): valor operacional actual T0=23:00, 7 salidas (H-022 hasta 06:45), apertura T−48h, bloqueo T−2h. No hardcodear 8/480 ni 7/420 como invariantes del sistema.
+- Zona America/Santiago; reloj de verdad del servidor. La **primera salida (T0), catálogo de salidas, apertura/bloqueo y flota son configuración de jornada** (DEC-015/022/032): valor operacional actual T0=23:00 **reservable**, 8 salidas (23:00 + H-022 hasta 06:45), apertura T−48h, bloqueo T−2h. No hardcodear 8/480 ni 7/420 como invariantes del sistema.
 - Dos rutas y flota base del piloto son configuración; rutas, tarifas, domicilios y montos necesitan respaldo del cliente (V-05).
 - Usuario nunca se autoasigna privilegios. Acceso por organización, contrato, rol, recurso y titularidad; ocultar pestañas no protege datos.
 - Propuesta ≠ confirmación (DEC-017). Reserva confirmada no equivale a abordaje real. Evidencia y autorización son registros diferentes.

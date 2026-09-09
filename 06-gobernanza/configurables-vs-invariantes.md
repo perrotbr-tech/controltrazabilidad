@@ -1,5 +1,5 @@
 # Configurables vs invariantes contractuales
-Fecha: 2026-09-09. Origen: DEC-014…031. Propietario: Eduardo Perrot.
+Fecha: 2026-09-09. Origen: DEC-014…032. Propietario: Eduardo Perrot.
 
 ## Invariantes (no configurables por jornada ni por UI)
 
@@ -24,11 +24,11 @@ Fecha: 2026-09-09. Origen: DEC-014…031. Propietario: Eduardo Perrot.
 
 | ID | Parámetro | Valor operacional actual (piloto) |
 |---|---|---|
-| CFG-01 | Primera salida (T0) | 23:00 |
+| CFG-01 | Primera salida (T0) y salida reservable | **23:00** (DEC-032: visible en catálogo y reservable; ancla de jornada) |
 | CFG-02 | Apertura de inscripción | T0 − 48 h |
 | CFG-03 | Bloqueo de autoservicio | T0 − 2 h (21:00 si T0=23:00) |
-| CFG-04 | Catálogo de salidas (hora:minuto) | 00:15, 01:35, 02:35, 03:35, 04:35, 05:35, 06:45 (7) |
-| CFG-05 | Última salida / fin operacional | 06:45 (+ margen si se define) |
+| CFG-04 | Catálogo de salidas (hora:minuto) | **23:00**, 00:15, 01:35, 02:35, 03:35, 04:35, 05:35, 06:45 **(8)** — DEC-032 |
+| CFG-05 | Última salida / fin operacional | 06:45 (+ margen si se define) de la jornada anclada en T0=23:00 |
 | CFG-06 | Vans base | 4 |
 | CFG-07 | Capacidad referencial por van | 15 |
 | CFG-08 | Tope vans extra por jornada | 2 (acumulado global) |
@@ -45,7 +45,7 @@ Fecha: 2026-09-09. Origen: DEC-014…031. Propietario: Eduardo Perrot.
 - Apertura/bloqueo absolutos a partir de T0 + CFG-02/03.
 - Capacidad base por salida = vans asignadas × capacidadVan.
 - Consumo de tope de extras = suma de vans en estados que consumen tope (DEC-025 / RN-033 F3).
-- Proyección mensual/período = fórmula CFG-14.
+- Proyección mensual/período = fórmula CFG-14. Con config actual: `30 × 8 × 2 = 480` es **referencial**, no AC fijo.
 
-## Nota sobre DEC-004
-DEC-004 (8 salidas 23:00–06:00) queda como **evidencia histórica declarada**. La configuración operacional vigente del sistema es DEC-022 + SPEC-003b. No reintroducir 8/480 como AC obligatorios.
+## Nota sobre DEC-004 / DEC-022 / DEC-032
+DEC-004 (8 salidas “cada hora” 23:00–06:00) sigue siendo **evidencia histórica declarada**, no el catálogo minuto a minuto. La config operacional vigente es **DEC-022 (resto) + DEC-032**: **8 salidas** con minutos reales (23:00 + H-022). No tratar “8” ni “480” como invariantes del sistema: si cambia CFG-04/`salidasPorJornada`, cambian conteo y proyección.

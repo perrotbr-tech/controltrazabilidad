@@ -32,7 +32,7 @@ else pass('Node 22 configurado');
 if (!/TZ:\s*America\/Santiago/.test(yaml)) fail('Debe fijar TZ America/Santiago');
 else pass('TZ America/Santiago');
 
-for (const s of ['check-baseline.cjs', 'check-config.cjs', 'check-permisos.cjs', 'e2e-contraprueba.js']) {
+for (const s of ['check-baseline.cjs', 'check-config.cjs', 'check-permisos.cjs', 'check-corte1.cjs', 'e2e-contraprueba.js', 'check-e2e-regresion-salir-extra.cjs']) {
   if (!yaml.includes(s)) fail('Workflow no referencia ' + s);
   else pass('Referencia ' + s);
 }
@@ -53,9 +53,11 @@ function run(label, cmd, args) {
 run('check-baseline.cjs', 'node', ['scripts/check-baseline.cjs']);
 run('check-config.cjs', 'node', ['scripts/check-config.cjs']);
 run('check-permisos.cjs', 'node', ['scripts/check-permisos.cjs']);
+run('check-corte1.cjs', 'node', ['scripts/check-corte1.cjs']);
 
 if (process.env.INCLUDE_E2E === '1') {
   run('e2e-contraprueba.js', 'node', ['scripts/e2e-contraprueba.js']);
+  run('check-e2e-regresion-salir-extra.cjs', 'node', ['scripts/check-e2e-regresion-salir-extra.cjs']);
 } else {
   console.log('SKIP e2e (defina INCLUDE_E2E=1 para incluirlo)');
 }

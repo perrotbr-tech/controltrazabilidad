@@ -11,8 +11,8 @@ Antes del Corte 1 no hay verificación automática en pull requests. Un cambio p
 Scripts existentes y verificados localmente: `scripts/check-baseline.cjs`, `scripts/check-config.cjs`, `scripts/check-permisos.cjs`, `scripts/e2e-contraprueba.js` (Playwright). Registro histórico en `08-validacion/resultado-baseline.md`.
 
 ## 3. Alcance
-Incluido: workflow GitHub Actions en `pull_request`; Node 22; TZ `America/Santiago`; permisos mínimos (`contents: read`); job de checks Node sin dependencias; job E2E Playwright con Chromium fijado por `package-lock.json` solo si es estable.
-Excluido: secretos, despliegue, cuentas externas, Corte 1, cambios a `09-plataforma/app/`, publicación de artefactos productivos.
+Incluido: workflow GitHub Actions en `pull_request`; Node 22; TZ `America/Santiago`; permisos mínimos (`contents: read`); job de checks Node (`baseline`, `config`, `permisos`, `corte1`); job E2E Playwright (`e2e-contraprueba` + regresión modal de extra).
+Excluido: secretos, despliegue, cuentas externas, publicación de artefactos productivos.
 
 ## 4. Requisitos
 REQ-CI-01 El workflow corre en cada `pull_request`.
@@ -43,4 +43,5 @@ AC-04 Dado Playwright 1.55.1 + Chromium, cuando se corre `e2e-contraprueba.js` d
 ## 8. Riesgos y decisiones abiertas
 - E2E usa `waitForTimeout` y `file://`; puede volverse frágil en runners futuros → mitigación: job separado con `needs` y timeout.
 - Costo de minutos Actions crece con instalación de Chromium → job E2E solo tras PASS de checks.
+- `--with-deps` puede fallar por `Hash Sum mismatch` del apt de Google Chrome en `ubuntu-latest` → el workflow elimina sources Google/Chrome y usa `playwright install chromium` sin `--with-deps`.
 - No requiere DEC nueva: es verificación del prototipo existente, no backend ni producción.

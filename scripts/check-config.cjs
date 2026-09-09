@@ -1,4 +1,4 @@
-// Prueba reproducible SPEC-003: configuración operativa real (capacidad 15 por van, 2 vans extra, cobro por van).
+// Prueba reproducible SPEC-003 / DEC-032: configuración operativa (capacidad 15 por van, 2 vans extra, 8 salidas).
 // Uso: node scripts/check-config.cjs [ruta-al-html]   (por defecto 09-plataforma/app/index.html)
 const fs = require('node:fs');
 const vm = require('node:vm');
@@ -29,10 +29,10 @@ caso('AC-03', 'Hay salidas con lista de espera y salidas con capacidad disponibl
   const ds = S().servicios.map(s => app.demanda(s));
   return ds.some(d => d.espera > 0) && ds.some(d => d.libres > 0);
 });
-caso('AC-04', 'Siete salidas por jornada y ruta con el horario real (00:15 … 06:45) — SPEC-003b', () => {
+caso('AC-04', 'Ocho salidas por jornada y ruta con horario DEC-032 (23:00 … 06:45)', () => {
   const counts = {}; for (const x of S().servicios) { const k = app.jornadaDe(x.salida).id + '-' + x.rutaIdx; counts[k] = (counts[k] || 0) + 1; }
-  const HM = new Set(['0:15', '1:35', '2:35', '3:35', '4:35', '5:35', '6:45']);
-  return Object.values(counts).every(n => n === 7) && S().servicios.every(x => { const d = new Date(x.salida); return HM.has(d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0')); });
+  const HM = new Set(['23:00', '0:15', '1:35', '2:35', '3:35', '4:35', '5:35', '6:45']);
+  return Object.values(counts).every(n => n === 8) && S().servicios.every(x => { const d = new Date(x.salida); return HM.has(d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0')); });
 });
 caso('AC-05', 'Extra #1: 2 vans ex post (DEC-009), capacidadExtra 30, Utilizado y respaldado; extra #3: Rechazado con demanda ≤ 30', () => {
   const e1 = S().extras.find(e => e.id === 1), e3 = S().extras.find(e => e.id === 3);
@@ -96,8 +96,8 @@ caso('AC-14', 'Estado guardado con la semilla antigua (4 cupos, clave v2) no se 
   vm.createContext(ctx2); vm.runInContext(script, ctx2);
   return ctx2.window.app.S.contrato.capacidadVan === CAP && ctx2.window.app.S.servicios.length > 1;
 });
-caso('AC-15', 'Proyección mensual 30 × 7 salidas × 2 rutas = 420 (H-022)', () =>
-  !/24 salidas/.test(html) && app.periodo().proy.servicios === 420);
+caso('AC-15', 'Proyección mensual 30 × salidasPorJornada × rutas (DEC-032; no hardcode 420)', () =>
+  !/24 salidas/.test(html) && app.periodo().proy.servicios === 30 * S().contrato.salidasPorJornada * S().contrato.rutas.length);
 caso('AC-16', 'R7 tope por jornada (DEC-013): con 1 van ya autorizada en la jornada, pedir 2 más se rechaza y 1 más se acepta', () => {
   app.login(2);
   const conExtra = S().extras.filter(e => e.estado === 'Autorizado').map(e => S().servicios.find(s => s.id === e.servicioId))[0];

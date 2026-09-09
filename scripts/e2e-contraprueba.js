@@ -21,8 +21,10 @@ function ok(c, m) { log.push((c ? 'PASS ' : 'FAIL ') + m); if (!c) process.exitC
   // TRABAJADOR
   await page.click('button.cuenta:has-text("Camila Fuentes")');
   await page.waitForSelector('text=Mis traslados');
-  const cap = await page.locator('.tarjeta').first().innerText();
-  ok(/\/30/.test(cap) || /\/45/.test(cap), 'Trabajador ve capacidad sobre 30 cupos (15 × 2 vans): ' + (cap.match(/\d+\/\d+/) || [''])[0]);
+  // Corte 1 añade la tarjeta "Próximo traslado" al inicio; la capacidad vive en las tarjetas de salida.
+  const textosTarjetas = await page.locator('.tarjeta').allInnerTexts();
+  const cap = textosTarjetas.find(t => /\d+\s*\/\s*\d+/.test(t)) || textosTarjetas[0] || '';
+  ok(/\/30/.test(cap) || /\/45/.test(cap), 'Trabajador ve capacidad sobre 30 cupos (15 × 2 vans): ' + (cap.match(/\d+\s*\/\s*\d+/) || [''])[0]);
   ok(!/\/8\b/.test(cap), 'Sin rastro de la capacidad antigua de 8 cupos');
   await page.screenshot({ path: OUT + '/02-trabajador-mis-traslados.png', fullPage: true });
   await page.click('button:has-text("Salir")');
@@ -35,6 +37,14 @@ function ok(c, m) { log.push((c ? 'PASS ' : 'FAIL ') + m); if (!c) process.exitC
   await page.waitForSelector('#selSalida');
   const cab = await page.locator('h1:has-text("Vehículos adicionales") + p').innerText();
   ok(/2 vans adicionales/.test(cab) && /por van, no por pasajero/.test(cab), 'Cabecera de extras: 2 vans a disposición, cobro por van');
+  // DEC-032: la 1ª salida cronológica suele ser 23:00 con cupo libre (sin motivo automático).
+  // El E2E histórico asume justificación cuantitativa: seleccionar esa salida antes de abrir el modal.
+  const optsSalida = await page.locator('#selSalida option').evaluateAll(os =>
+    os.map(o => ({ value: o.value, text: o.textContent || '' })));
+  const salidaCuant = optsSalida.find(o => /Necesidad cuantitativa/i.test(o.text))
+    || optsSalida.find(o => { const m = o.text.match(/(\d+)\s*\/\s*(\d+)/); return m && Number(m[1]) > Number(m[2]); });
+  ok(!!salidaCuant, 'Hay salida con necesidad cuantitativa para solicitar extra' + (salidaCuant ? ': ' + salidaCuant.text : ''));
+  if (salidaCuant) await page.selectOption('#selSalida', salidaCuant.value);
   await page.click('button:has-text("Evaluar y solicitar")');
   await page.waitForSelector('#mVans');
   const opciones = await page.locator('#mVans option').allInnerTexts();
@@ -42,7 +52,8 @@ function ok(c, m) { log.push((c ? 'PASS ' : 'FAIL ') + m); if (!c) process.exitC
   await page.screenshot({ path: OUT + '/04-contratista-modal-solicitud.png', fullPage: true });
   await page.selectOption('#mVans', '2');
   await page.click('button:has-text("Enviar solicitud")');
-  await page.waitForTimeout(300);
+  // Condición de éxito: el velo del modal de solicitud debe cerrarse (creaSolicitud → cierraModal).
+  await page.waitForFunction(() => !document.getElementById('velo').classList.contains('abierto'));
   const tarjetaNueva = await page.locator('.tarjeta').last().innerText();
   ok(/2 van\(es\) · \+30 cupos · \$90\.000/.test(tarjetaNueva), 'Solicitud creada: 2 vans, +30 cupos, $90.000 (2 × tarifa por van)');
   await page.screenshot({ path: OUT + '/05-contratista-solicitud-creada.png', fullPage: true });
@@ -61,7 +72,7 @@ function ok(c, m) { log.push((c ? 'PASS ' : 'FAIL ') + m); if (!c) process.exitC
   await page.waitForSelector('#mDec');
   await page.fill('#mDec', 'Demanda confirmada sobre capacidad (contraprueba)');
   await page.click('button:has-text("Confirmar")');
-  await page.waitForTimeout(300);
+  await page.waitForFunction(() => !document.getElementById('velo').classList.contains('abierto'));
   await page.click('.nav button:has-text("Trazabilidad")');
   const aud = await page.locator('.aud').first().innerText();
   ok(/capacidad 30 → 60/.test(aud), 'Auditoría: capacidad 30 → 60 tras autorizar 2 vans: ' + aud.slice(0, 120));

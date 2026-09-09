@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   checks:
-    name: Baseline, config y permisos
+    name: Baseline, config, permisos y Corte 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -40,6 +40,9 @@ jobs:
       - name: check-permisos (app)
         run: node scripts/check-permisos.cjs
 
+      - name: check-corte1 (app)
+        run: node scripts/check-corte1.cjs
+
   e2e:
     name: Contraprueba E2E Playwright
     needs: checks
@@ -64,9 +67,29 @@ jobs:
         run: npm ci
 
       - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Neutralizar mirrors apt de Google Chrome (Hash Sum mismatch
+          # recurrente en ubuntu-latest; Playwright no los necesita).
+          set +e
+          sudo find /etc/apt -type f \( -iname '*google*' -o -iname '*chrome*' \) -print -delete
+          if [ -f /etc/apt/sources.list ]; then
+            sudo sed -i '/dl\.google\.com/d' /etc/apt/sources.list
+          fi
+          for f in /etc/apt/sources.list.d/*; do
+            if [ -f "$f" ] && grep -q 'dl.google.com' "$f" 2>/dev/null; then
+              echo "Removing $f"
+              sudo rm -f "$f"
+            fi
+          done
+          set -e
+          # Solo binarios del browser: evita apt --with-deps contra terceros.
+          # Las libs del runner ubuntu-latest bastan para Chromium de Playwright.
+          npx playwright install chromium
 
       - name: e2e-contraprueba
         env:
           CAPTURAS: ${{ runner.temp }}/capturas-e2e
         run: node scripts/e2e-contraprueba.js
+
+      - name: e2e-regresion-modal-extra
+        run: node scripts/check-e2e-regresion-salir-extra.cjs
