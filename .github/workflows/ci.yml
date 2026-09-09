@@ -1,0 +1,70 @@
+# CI básico del prototipo Enjoy — sin secretos ni despliegue (SPEC-008)
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Baseline, config y permisos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TZ: America/Santiago
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          check-latest: false
+
+      - name: check-baseline (prototipo-actual)
+        run: node scripts/check-baseline.cjs
+
+      - name: check-config (app)
+        run: node scripts/check-config.cjs
+
+      - name: check-permisos (app)
+        run: node scripts/check-permisos.cjs
+
+  e2e:
+    name: Contraprueba E2E Playwright
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TZ: America/Santiago
+      CAPTURAS: ${{ runner.temp }}/capturas-e2e
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          check-latest: false
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: e2e-contraprueba
+        run: node scripts/e2e-contraprueba.js

@@ -1,6 +1,6 @@
-# Estado de continuidad — 2026-09-09 (Fase 3 / G3-0 documental)
+# Estado de continuidad — 2026-09-09 (CI pre–Corte 1)
 ## Base recibida
-Proyecto_Enjoy en `perrotbr-tech/controltrazabilidad`, tronco histórico `claude/proyecto-agente-ia-lazwio`. Paquete `SPECDRIVE_FASE_3/` incorporado. Copia de trabajo: `09-plataforma/app/`. Baseline intacto: `09-plataforma/prototipo-actual/`.
+Proyecto_Enjoy en `perrotbr-tech/controltrazabilidad`, tronco `claude/proyecto-agente-ia-lazwio`. Paquete `SPECDRIVE_FASE_3/` incorporado. Copia de trabajo: `09-plataforma/app/`. Baseline intacto: `09-plataforma/prototipo-actual/`.
 
 ## Decisiones
 DEC-001…DEC-013 conservadas. **DEC-014…DEC-031 aprobadas** el 2026-09-09 (ver `06-gobernanza/registro-aprobaciones.md`). Destacados:
@@ -18,10 +18,11 @@ DEC-001…DEC-013 conservadas. **DEC-014…DEC-031 aprobadas** el 2026-09-09 (ve
 - SPEC-004 y SPEC-005 creadas (borrador/en revisión documental); no duplican F3-002/004.
 - Criterios de aceptación Corte 1 redactados (`04-especificaciones/SPEC-CORTE-1-inscripcion-hibrida.md`).
 - Configurables vs invariantes: `06-gobernanza/configurables-vs-invariantes.md`.
-- **No hay** backend, cuentas externas, despliegue ni cambios a `app/` en esta sesión.
+- **T-21 / SPEC-008**: CI GitHub Actions en cada PR (Node 22, `contents: read`, baseline+config+permisos, E2E Playwright 1.55.1). Validación local **PASS**. Sin secretos, sin deploy, **sin tocar `app/`**, **sin iniciar Corte 1**.
+- **No hay** backend, cuentas externas ni despliegue.
 
-## Trabajo de esta sesión (documental)
-Solo Markdown/gobernanza. Rama de trabajo documental (sin PR por instrucción del dueño). Sin código productivo.
+## Trabajo de esta sesión
+Infraestructura de verificación (SPEC-008): `.github/workflows/ci.yml`, `package.json`/`package-lock.json` (solo Playwright), `scripts/validate-ci-local.cjs`, `08-validacion/resultado-ci.md`. Rama `cursor/ci-github-actions-ac60`, PR Draft. Corte 1 no iniciado.
 
 ## Prioridad de arranque (próxima sesión — requiere aprobación explícita de construcción)
 0. Presentar ficha de costo/región/seguridad/respaldo/migración (DEC-021) antes de cualquier recurso externo.
@@ -31,4 +32,4 @@ Solo Markdown/gobernanza. Rama de trabajo documental (sin PR por instrucción de
 4. Cortes 2–4 según DEC-019.
 
 ## Estado técnico
-HTML local con reglas de capacidad/extras/horario demo. No autenticación real, no multiempresa en servidor, no cierre T−2h en servidor. La migración a PWA+Supabase requiere ficha DEC-021 y autorización de implementación.
+HTML local con reglas de capacidad/extras/horario demo. CI de PR cubre scripts Node y E2E del prototipo. No autenticación real, no multiempresa en servidor, no cierre T−2h en servidor. La migración a PWA+Supabase requiere ficha DEC-021 y autorización de implementación.
