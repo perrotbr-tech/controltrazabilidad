@@ -3,6 +3,7 @@ name: CI
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -46,7 +47,6 @@ jobs:
     timeout-minutes: 15
     env:
       TZ: America/Santiago
-      CAPTURAS: ${{ runner.temp }}/capturas-e2e
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,4 +67,6 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: e2e-contraprueba
+        env:
+          CAPTURAS: ${{ runner.temp }}/capturas-e2e
         run: node scripts/e2e-contraprueba.js
