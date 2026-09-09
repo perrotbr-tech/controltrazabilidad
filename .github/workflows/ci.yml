@@ -67,7 +67,12 @@ jobs:
         run: npm ci
 
       - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Ubuntu runners a veces traen el mirror apt de Google Chrome con
+          # Hash Sum mismatch intermitente; Playwright no lo necesita.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list \
+                     /etc/apt/sources.list.d/google*.list || true
+          npx playwright install --with-deps chromium
 
       - name: e2e-contraprueba
         env:

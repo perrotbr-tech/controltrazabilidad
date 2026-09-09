@@ -43,4 +43,5 @@ AC-04 Dado Playwright 1.55.1 + Chromium, cuando se corre `e2e-contraprueba.js` d
 ## 8. Riesgos y decisiones abiertas
 - E2E usa `waitForTimeout` y `file://`; puede volverse frágil en runners futuros → mitigación: job separado con `needs` y timeout.
 - Costo de minutos Actions crece con instalación de Chromium → job E2E solo tras PASS de checks.
+- `--with-deps` puede fallar por `Hash Sum mismatch` del apt de Google Chrome en `ubuntu-latest` → el workflow elimina esas sources list antes de instalar Chromium de Playwright.
 - No requiere DEC nueva: es verificación del prototipo existente, no backend ni producción.
