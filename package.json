@@ -1,0 +1,17 @@
+{
+  "name": "proyecto-enjoy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Prototipo Enjoy: app HTML de trazabilidad de traslados y pruebas con DOM simulado / E2E.",
+  "scripts": {
+    "test:baseline": "node scripts/check-baseline.cjs",
+    "test:permisos": "node scripts/check-permisos.cjs",
+    "test:config": "node scripts/check-config.cjs",
+    "test": "node scripts/check-baseline.cjs && node scripts/check-permisos.cjs && node scripts/check-config.cjs",
+    "test:e2e": "node scripts/e2e-contraprueba.js",
+    "serve": "python3 -m http.server 8080 --directory 09-plataforma/app"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}
