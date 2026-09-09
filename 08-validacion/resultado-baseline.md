@@ -35,3 +35,22 @@ Publicación para revisión del dueño: artefacto privado "Trazabilidad de Trans
 Alcance: recorrido feliz de SPEC-003 + bloqueo de conciliación; no cubre todos los perfiles ni casos negativos (esos están en los scripts con DOM simulado).
 
 Alcance: JavaScript con DOM simulado. No acredita interfaz en navegador, E2E, autenticación real ni seguridad de servidor. Contraprueba manual de los cuatro perfiles en navegador: pendiente (R5 de SPEC-002).
+
+# Verificación SPEC-003b + T-15 — 2026-09-09
+Entorno: contenedor remoto Linux, Node v22.14.0, `TZ=America/Santiago`. Sin modificación de `09-plataforma/app/` en esta sesión.
+
+| Comando | Archivo | Resultado |
+|---|---|---|
+| `node scripts/check-baseline.cjs` | prototipo-actual (intacto) | PASS |
+| `node scripts/check-config.cjs` | app/index.html (SPEC-003b) | **PASS 16/16**, exit 0 |
+| `node scripts/check-permisos.cjs` | app/index.html | **PASS 21/21**, exit 0 |
+| `node scripts/check-permisos.cjs 09-plataforma/prototipo-actual/index.html` | baseline | FAIL 7/21 (histórico esperado) |
+
+Revisión independiente `revisor-qa` (T-15): **PASS CON LIMITACIONES**.
+Limitaciones abiertas (sin bloqueantes de código por lectura):
+1. Documentar 16/16 aquí (cumplido en este párrafo).
+2. E2E específica pendiente: asertar 7 salidas H-022, proyección referencial bajo config actual y horario real (el E2E 12/12 cubre SPEC-003, no estos asertos de 003b).
+3. Validación huso America/Santiago / cruce medianoche (T-10) con reloj controlado.
+4. Migración `trazabilidad_v3`: `cargar()` no invalida explícitamente estados con `salidasPorJornada !== 7` (Q-003b-1; diferido, sin tocar app en esta sesión).
+
+DEC-022: proyección 420 es **referencial** de la configuración actual, no regla fija del sistema.

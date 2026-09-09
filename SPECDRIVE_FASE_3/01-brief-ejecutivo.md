@@ -10,8 +10,8 @@ Adoptar un modelo híbrido:
 
 - La nómina y el turno generan una propuesta de traslado, no una reserva definitiva.
 - El trabajador puede aceptar esa propuesta o escoger una alternativa compatible.
-- El autoservicio ocurre únicamente entre T−24h y T−2h.
-- Para una jornada que inicia a las 23:00, la ventana abre a las 23:00 del día anterior y cierra a las 21:00 del día de salida.
+- El autoservicio ocurre únicamente entre T−48h y T−2h (DEC-015).
+- Para una jornada que inicia a las 23:00, la ventana abre 48 horas antes (23:00) y cierra a las 21:00 del día de salida.
 - Después del cierre, toda modificación exige flujo de excepción con motivo, usuario autorizador y auditoría.
 
 ## Objetivos
@@ -45,7 +45,8 @@ Adoptar un modelo híbrido:
 ## Hipótesis que deben validarse
 
 - La primera salida operacional es efectivamente 23:00.
-- Los turnos se publican con al menos 24 horas de anticipación.
+- Hipótesis de producto (no es la ventana de inscripción): los turnos se publican con al menos 24 horas de anticipación.
+- Ventana de inscripción vigente: **T−48h / T−2h** (DEC-015).
 - Existe un identificador interno estable para cada trabajador.
 - El contratista puede disponer de un teléfono por vehículo o despacho.
 - El tope contractual de dos vans extra aplica a toda la jornada y a ambas rutas.

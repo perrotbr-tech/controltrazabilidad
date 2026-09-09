@@ -1,63 +1,34 @@
-# Estado de continuidad — 2026-09-08 (sesión 1 en Claude Code)
+# Estado de continuidad — 2026-09-09 (Fase 3 / G3-0 documental)
 ## Base recibida
-Proyecto_Enjoy_2026-09-08.zip + index_7.html. El HTML separado y el incluido en el ZIP son idénticos byte a byte. Se conserva como referencia en 09-plataforma/prototipo-actual/index.html.
-Paquete portable `Enjoy_Claude_spec.md` (34 archivos) reconstruido en el repositorio `perrotbr-tech/controltrazabilidad`, rama `claude/proyecto-agente-ia-lazwio`, sin colisiones.
-Segundo envío de la misma sesión: manual Word incorporado (`06-gobernanza/`, original + `manual-spec-driven.md`) y ZIP conservado en `00-contexto/historico/zip-2026-09-08/` (snapshot previo a DEC-004 con prototipo de 24 salidas; verificado por hash que nada en él es más nuevo que el repo). Desde el manual se crearon `vision-y-alcance.md`, `PLANTILLA-SPEC.md` y `compuertas.md`, que el prompt maestro PR-01 exigía y no existían.
+Proyecto_Enjoy en `perrotbr-tech/controltrazabilidad`, tronco histórico `claude/proyecto-agente-ia-lazwio`. Paquete `SPECDRIVE_FASE_3/` incorporado. Copia de trabajo: `09-plataforma/app/`. Baseline intacto: `09-plataforma/prototipo-actual/`.
 
-## Decisiones existentes
-DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC-003 piloto Enjoy; DEC-004 horario 23–06; DEC-005 avance del MVP sin completar G1/G2/G3 y traspaso a Claude Code. Se conservan íntegramente. Esta sesión no emitió ninguna DEC nueva.
+## Decisiones
+DEC-001…DEC-013 conservadas. **DEC-014…DEC-031 aprobadas** el 2026-09-09 (ver `06-gobernanza/registro-aprobaciones.md`). Destacados:
+- Híbrido con confirmación obligatoria (014/017); ventana **T−48h / T−2h** configurable (015).
+- Post-bloqueo = excepción + manifiesto versionado (016/023).
+- Orden de cortes 1→4 (019); arquitectura PWA+Supabase+Vercel **solo planificada** (021, sin cuentas/despliegue).
+- Config operacional actual: 7 salidas, T0 23:00, última 06:45, 4 vans, 15/van, 2 extras/jornada (022/025); proyecciones calculadas, no fijas.
+- QR ID interno aleatorio (027); extra ex post hasta 12:00 día siguiente America/Santiago (028).
+- 90/93 = parámetros piloto (029); geodatos anonimizados (030); fijo contractual no automático (031).
 
 ## Hecho / declarado / pendiente
-- Verificado por lectura y comparación: HTML único, localStorage, reloj simulado, permisos en cliente, ocho horas operativas y proyección codificada 30×8×2.
-- Verificado por ejecución (2026-09-08, Node 22, TZ America/Santiago): `check-baseline.cjs` PASS sobre el baseline; `check-permisos.cjs` 21/21 sobre `09-plataforma/app/index.html` y 7/21 sobre el baseline (reproducción de SPEC-002).
-- Declarado en registro: cliente Enjoy y horario real. No se adjuntó contrato firmado.
-- S1–S3: informes recibidos, no investigación nueva. Persisten V-10, V-14 y V-15. Comprobado en T-02: ocho filas del CSV con 11 columnas y 16 citas sin URL (ver REVISION-PORTABILIDAD).
-- 46/46 pruebas: resultado declarado en entrega previa, script y logs ausentes; no reproducido.
-- S4 operación local y S5 consolidación: pendientes.
-- PR-05 registro de trabajadores: SPEC-001 sigue siendo propuesta; se listaron las decisiones D1–D6 que faltan para aprobarla (T-03).
-- Montos, rutas, tiempos de ciclo, dotación y capacidad: configuración a verificar; no convertir en condiciones contractuales reales.
+- G3-0: impacto F3, contradicciones, preguntas humanas — **cerrado** (sesión análisis previa).
+- T-15: **PASS CON LIMITACIONES** (revisor-qa + scripts 16/16, 21/21, baseline PASS). Pendiente: E2E específica 003b, T-10 huso, Q-003b-1 migración localStorage.
+- SPEC-003 **superada por SPEC-003b** en horarios/cantidad (DEC-022); documentado.
+- SPEC-004 y SPEC-005 creadas (borrador/en revisión documental); no duplican F3-002/004.
+- Criterios de aceptación Corte 1 redactados (`04-especificaciones/SPEC-CORTE-1-inscripcion-hibrida.md`).
+- Configurables vs invariantes: `06-gobernanza/configurables-vs-invariantes.md`.
+- **No hay** backend, cuentas externas, despliegue ni cambios a `app/` en esta sesión.
 
-## Trabajo de esta sesión
-- T-01 auditado: SPEC-002 (permisos en todas las mutaciones) especificada, implementada por `constructor` en `09-plataforma/app/index.html` y revisada por `revisor-qa` (sin bloqueantes; D-1 y D-2 corregidos; D-3, D-4, D-5 registrados en la SPEC como pendientes). El baseline no se tocó.
-- Flujo aplicado: SPEC → prueba reproducible que falla en el baseline → corrección en copia de trabajo → revisión independiente → pruebas → estado.
-- Supervisor hizo commit y push a la rama indicada por el dueño para esta sesión remota; no hay despliegue ni datos reales.
-- Manual rector ahora rige literalmente: formato de entrega entre funciones (sección 15), política de detención (sección 11) y plantilla de SPEC (sección 09). SPEC-001 deberá completarse con la plantilla completa antes de "En revisión".
-- La carpeta local `C:\Users\perro\OneDrive\Desktop\Proyecto Enjoy` no es accesible desde la sesión remota; la entrega es la rama Git más la carpeta empaquetada (zip) enviada al dueño.
+## Trabajo de esta sesión (documental)
+Solo Markdown/gobernanza. Rama de trabajo documental (sin PR por instrucción del dueño). Sin código productivo.
 
-## Respuestas del dueño (2026-09-08, tarde)
-- Contraprueba manual de SPEC-002: **OK** → SPEC-002 Verificada; `app/index.html` es la copia de trabajo vigente.
-- DEC-006: el conductor lo controla el contratista; no es usuario de la plataforma (SPEC-001 D5 resuelta).
-- DEC-007: V-10 autorizado → S2b ejecutado: **parcialmente cerrado** (H-016…H-021). AllRide declara conciliación de lo ejecutado; no se halló fijo/extras con causal, autorización y cierre reproducible. Diferenciador estrechado, no refutado.
-- Rama: sin pull request; el remoto no tiene rama principal, esta rama es el tronco.
-- Dato nuevo **V-16**: "24 viajes, 4 vans, cerca de 15 pasajeros" contradice la configuración del prototipo (4 cupos/van, 16 salidas). SPEC-003 en borrador con preguntas Q1–Q5; **el prototipo no se toca hasta precisar**.
-
-## Respuestas Q1–Q5 y SPEC-003 (2026-09-08, cierre de sesión)
-- DEC-008: capacidad 15–17 por van (15 garantizados, configurable), salidas cada hora 23–06 en ambos sentidos, 2 rutas con puntos por definir, 2 vans extra completas a disposición con cobro por van, planilla de trabajadores (a anonimizar).
-- SPEC-003 implementada en `app/` (constructor), revisada (revisor-qa, sin bloqueantes), correcciones QA aplicadas: clave `trazabilidad_v3`, semilla coherente, R6 estricta. Pruebas: check-config 15/15, check-permisos 21/21, baseline PASS.
-- Nuevas tareas: T-11 SPEC-004 reserva por sentido y puntos (depende de la planilla anonimizada, plantilla en `02-descubrimiento/`); T-12 maestro de vehículos con capacidad real por patente y habilitación TTEPRIV.
-- Cifra "24 viajes" sigue sin reconciliar; se revisará con la planilla.
-
-- Contraprueba de SPEC-003: el dueño no pudo abrir el archivo (GitHub muestra el código). El Supervisor ejecutó una contraprueba E2E en Chromium real (12/12, `scripts/e2e-contraprueba.js`, capturas en `08-validacion/capturas-e2e/`) y publicó la app como página privada para que el dueño la recorra desde el navegador. Cómo abrir localmente: descomprimir el zip y hacer doble clic en `09-plataforma/app/index.html`; en GitHub, el botón "Raw" o "Download" descarga el archivo.
-
-## Cierre de etapa parcial (2026-09-08, final)
-Ver `06-gobernanza/cierre-etapa-1.md`. Nuevas decisiones: DEC-009 extra ex post (madrugada sin autorizador; solicitud al día siguiente), DEC-010 SPEC-001 D1–D6 aprobadas, DEC-011 contacto AllRide autorizado. Evidencia nueva H-022: horario real del contratista 00:15, 01:35, 02:35, 03:35, 04:35, 05:35, 06:45 (7 salidas, no "cada hora en punto"); no aplicado aún a la semilla.
-
-## Avance posterior al cierre (misma fecha)
-- DEC-012 (4 vans, 15 por van), DEC-013 (tope 2 vans extra por jornada), V-18 cerrado (el contratista agrupa rutas).
-- **SPEC-003b implementada y verificada** en `app/`: 7 salidas reales, demanda real reescalada (H-023), extra #1 ex post de 2 vans (DEC-009), tope por jornada, proyección 420. Pruebas 16/16, 21/21, baseline PASS, E2E 12/12. Sin revisión QA independiente por restricción de tokens (T-15).
-- Etapa 2 preparada: `06-gobernanza/cuestionario-etapa-2.md` (responder en un mensaje), `SPEC-006-geolocalizacion-ruta.md` (van, no persona) y `SPEC-007-mvp-movil-en-linea.md` con ADR-001 en tres opciones (recomendada: Vercel + Supabase).
-
-## Prioridad de arranque (próxima sesión)
-0. Leer el cuestionario respondido; registrar las DEC que abre (proveedor, publicación, geolocalización de la van, datos ficticios en línea).
-1. SPEC-007 corte 1 (PWA + login + datos compartidos) con constructor y revisor-qa; T-15 revisión QA de SPEC-003b.
-2. SPEC-004 puntos de ruta con la planilla anonimizada (B1–B3); SPEC-005 extra ex post con plazo (D1–D2).
-3. SPEC-006 posición de la van sobre el backend del corte 1.
-4. Conciliación con PDF (D3) y cierre inmutable (T-08).
-2. Planilla de trabajadores **anonimizada** según `02-descubrimiento/LEEME-planilla.md` → SPEC-004 (puntos de bajada y encuentro, reserva por sentido).
-3. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
-4. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.
-5. Decisión de diseño: ¿tope de 2 vans extra por jornada o por solicitud? (hoy por solicitud).
-6. T-10 huso horario; T-02 URLs primarias H-001/H-002/H-003; ADR-001 antes de cualquier backend.
+## Prioridad de arranque (próxima sesión — requiere aprobación explícita de construcción)
+0. Presentar ficha de costo/región/seguridad/respaldo/migración (DEC-021) antes de cualquier recurso externo.
+1. Corte 1: identidad + inscripción híbrida según SPEC-CORTE-1 / F3-001 ajustada a T−48h (simulación en `app/` solo si se autoriza; real tras ficha DEC-021).
+2. Cerrar salvedades T-15 (E2E 003b, T-10) sin bloquear el diseño del Corte 1.
+3. SPEC-004 con sectores anonimizados (DEC-030) cuando haya planilla/B1.
+4. Cortes 2–4 según DEC-019.
 
 ## Estado técnico
-No hay backend implementado, autenticación real, base de datos o aislamiento multiempresa. La copia `app/` corrige autorización en el navegador; no es seguridad de producción. La migración requiere diseño y controles nuevos, no simplemente conectar el HTML a una API.
+HTML local con reglas de capacidad/extras/horario demo. No autenticación real, no multiempresa en servidor, no cierre T−2h en servidor. La migración a PWA+Supabase requiere ficha DEC-021 y autorización de implementación.

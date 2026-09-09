@@ -44,7 +44,7 @@ Aplicación a Enjoy:
 |---|---|---|---|---|
 | A. Asignación rígida por turno | Nómina asigna viaje; trabajador solo consulta | Simple y controlable | Falla ante cambios frecuentes | Bajo |
 | B. Reserva totalmente voluntaria | Cada trabajador busca y reserva | Demanda explícita | Olvidos y alta carga de uso | Medio-alto |
-| C. Híbrido flexible | Sistema propone; trabajador confirma o cambia T−24 a T−2 | Equilibrio entre control y flexibilidad | Requiere reglas de excepción claras | Medio |
+| C. Híbrido flexible | Sistema propone; trabajador confirma o cambia **T−48 a T−2** (DEC-015; el brief original decía T−24 — **histórica/supersedida por DEC-015**) | Equilibrio entre control y flexibilidad | Requiere reglas de excepción claras | Medio |
 
 ## Recomendación
 

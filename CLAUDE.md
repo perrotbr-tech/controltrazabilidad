@@ -13,12 +13,13 @@ Las instrucciones actuales de Eduardo prevalecen. Conservar DEC-001…DEC-005; n
 El piloto es transporte del Hotel Enjoy Antofagasta; minería es expansión posterior. No incorporar normativa minera al hotel por analogía.
 
 ## Invariantes
-- Fijo contractual separado del uso y extras; ningún KPI genera descuentos o pagos automáticos.
-- Horarios declarados: 23:00–06:00 inclusive, ocho salidas/ruta/noche; usar America/Santiago, no el huso de la computadora.
-- Dos rutas y cuatro vans de cuatro plazas son configuración del prototipo; rutas, tarifas, domicilios y montos necesitan respaldo del cliente.
+- Fijo contractual separado del uso y extras; ningún KPI genera descuentos o pagos automáticos (DEC-031).
+- Zona America/Santiago; reloj de verdad del servidor. La **primera salida (T0), catálogo de salidas, apertura/bloqueo y flota son configuración de jornada** (DEC-015/022): valor operacional actual T0=23:00, 7 salidas (H-022 hasta 06:45), apertura T−48h, bloqueo T−2h. No hardcodear 8/480 ni 7/420 como invariantes del sistema.
+- Dos rutas y flota base del piloto son configuración; rutas, tarifas, domicilios y montos necesitan respaldo del cliente (V-05).
 - Usuario nunca se autoasigna privilegios. Acceso por organización, contrato, rol, recurso y titularidad; ocultar pestañas no protege datos.
-- Reserva confirmada no equivale a abordaje real. Evidencia y autorización son registros diferentes.
-- No almacenar secretos ni datos personales reales en Git; no seguimiento continuo del trabajador.
+- Propuesta ≠ confirmación (DEC-017). Reserva confirmada no equivale a abordaje real. Evidencia y autorización son registros diferentes.
+- No almacenar secretos ni datos personales reales en Git; no seguimiento continuo del trabajador; GPS solo de la van (DEC-030).
+- Backend/despliegue: DEC-021 autoriza solo arquitectura recomendada hasta ficha y aprobación de construcción.
 
 ## Flujo spec-driven ligero
 Antes de cada cambio redactar/actualizar SPEC breve: problema, origen (DEC/PR/H), alcance, reglas, AC verificables, tareas y pruebas. Para correcciones ya autorizadas informar y ejecutar; para ampliaciones presentar decisión concreta. Mantener H → REQ → SPEC → AC → prueba → tarea. No convertir referencias históricas en hechos revalidados.

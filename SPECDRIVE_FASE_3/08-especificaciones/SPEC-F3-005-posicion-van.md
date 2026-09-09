@@ -8,7 +8,7 @@ Compartir la posición operacional de la van, no de la persona, con visibilidad 
 
 ## Requisitos
 
-1. Conductor o dispositivo del contratista inicia y termina transmisión.
+1. El **operador contratista** (dispositivo o sesión del contratista) inicia y termina transmisión de la posición de la **van**. No existe rol de usuario “conductor” (DEC-024).
 2. Trabajador confirmado ve solo su van y durante una ventana acotada.
 3. Contratista y mandante ven vehículos de sus contratos.
 4. Después del viaje se conservan hitos necesarios, no un rastro indefinido.

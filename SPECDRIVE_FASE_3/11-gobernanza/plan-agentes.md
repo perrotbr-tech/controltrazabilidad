@@ -24,7 +24,7 @@ Tareas:
 
 Primera investigación recomendada:
 
-- validar con el contacto AllRide cómo manejan turno cambiante, ventana T−24/T−2, offline, lista de espera, múltiples contratistas, exportación de datos, costos y salida del proveedor.
+- validar con el contacto AllRide cómo manejan turno cambiante, ventana T−48/T−2 (DEC-015; la mención previa T−24/T−2 queda **histórica/supersedida**), offline, lista de espera, múltiples contratistas, exportación de datos, costos y salida del proveedor.
 
 ## Analista SPEC
 

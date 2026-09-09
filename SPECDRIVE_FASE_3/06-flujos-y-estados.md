@@ -35,12 +35,14 @@ Una implementación puede separar estado de reserva, bloqueo y abordaje en campo
 
 ## 2. Flujo diario
 
-### T−24h — apertura
+### T−48h — apertura (DEC-015)
 
 1. Importar última nómina y turnos.
 2. Resolver trabajador, contrato, sentido, horario y parada sugerida.
 3. Crear propuestas idempotentes.
 4. Notificar disponibilidad sin exponer datos sensibles.
+
+Con configuración actual (T0=23:00): la apertura ocurre a las 23:00, 48 horas antes de la primera salida; el bloqueo a las 21:00 (T−2h). Ambos offsets son configurables por jornada.
 
 ### Ventana abierta
 
@@ -60,12 +62,12 @@ Una implementación puede separar estado de reserva, bloqueo y abordaje en campo
 
 ### Operación
 
-1. Contratista asigna vehículo/conductor.
-2. Conductor inicia ruta.
+1. Contratista asigna vehículo y datos de conductor como evidencia (sin rol usuario “conductor”; DEC-006/024).
+2. Operador contratista inicia ruta.
 3. Trabajador ve estado y posición de la van.
-4. Se registra abordaje.
+4. Se registra abordaje desde sesión/dispositivo del operador contratista.
 5. Se registran hitos y contingencias.
-6. Conductor finaliza ruta.
+6. Operador contratista finaliza ruta.
 
 ### Cierre posterior
 
