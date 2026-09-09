@@ -21,7 +21,6 @@
 - No acredita autenticación real ni seguridad de producción.
 - E2E usa `file://`; Chromium vía Playwright en el job `e2e`.
 
-## Incidente CI remoto (PR #4, run 34383501366)
-- Job `checks` (baseline/config/permisos/corte1): **PASS**
-- Job `e2e`: falló en `Install Chromium for Playwright` por `Hash Sum mismatch` del mirror apt `dl.google.com/linux/chrome-stable` al usar `playwright install --with-deps`.
-- Mitigación en workflow: eliminar `google-chrome*.list` del runner antes de instalar Chromium de Playwright (no se usan secretos ni despliegue).
+## Incidente CI remoto (PR #4)
+- Runs `34383501366` y `34383971030`: job `checks` **PASS**; job `e2e` falló en instalación de Chromium por `Hash Sum mismatch` del mirror apt `dl.google.com/linux/chrome-stable` con `playwright install --with-deps`.
+- Mitigación: eliminar cualquier source apt que apunte a Google Chrome/`*chrome*` y usar `npx playwright install chromium` **sin** `--with-deps` (libs del runner bastan; sin secretos ni despliegue).

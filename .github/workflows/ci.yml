@@ -68,11 +68,23 @@ jobs:
 
       - name: Install Chromium for Playwright
         run: |
-          # Ubuntu runners a veces traen el mirror apt de Google Chrome con
-          # Hash Sum mismatch intermitente; Playwright no lo necesita.
-          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list \
-                     /etc/apt/sources.list.d/google*.list || true
-          npx playwright install --with-deps chromium
+          # Neutralizar mirrors apt de Google Chrome (Hash Sum mismatch
+          # recurrente en ubuntu-latest; Playwright no los necesita).
+          set +e
+          sudo find /etc/apt -type f \( -iname '*google*' -o -iname '*chrome*' \) -print -delete
+          if [ -f /etc/apt/sources.list ]; then
+            sudo sed -i '/dl\.google\.com/d' /etc/apt/sources.list
+          fi
+          for f in /etc/apt/sources.list.d/*; do
+            if [ -f "$f" ] && grep -q 'dl.google.com' "$f" 2>/dev/null; then
+              echo "Removing $f"
+              sudo rm -f "$f"
+            fi
+          done
+          set -e
+          # Solo binarios del browser: evita apt --with-deps contra terceros.
+          # Las libs del runner ubuntu-latest bastan para Chromium de Playwright.
+          npx playwright install chromium
 
       - name: e2e-contraprueba
         env:
