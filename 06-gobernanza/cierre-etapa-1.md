@@ -28,8 +28,11 @@ Compuerta abreviada bajo DEC-005. Aprobador: Eduardo Perrot. Supervisor: sesión
 6. **Conciliación mensual** — fijo + extras respaldados; bloqueada mientras haya un Observado (el extra de madrugada sin autorización). Mostrar "Validar emergencia" como el camino de DEC-009.
 Mensaje de cierre: la plataforma traza y respalda; no decide cuánto se paga.
 
+## Evidencia recibida al cierre (H-023)
+Planilla real de transfer de una semana: 1.389 traslados, 394 personas, 7 horarios con punta de 40 a 93 personas a las 00:15. La semilla de la demo subestima la punta real; la próxima etapa la reescala con datos reales agregados (sin datos personales). Ver `02-descubrimiento/agregado-transfer-semana-31ago-06sep-2026.md`.
+
 ## Próxima etapa (orden propuesto)
-1. SPEC-003b horario real (H-022) y SPEC-005 extra ex post (DEC-009) — cambios acotados en `app/` con pruebas.
+1. SPEC-003b horario y demanda reales (H-022 + H-023) y SPEC-005 extra ex post (DEC-009) — cambios acotados en `app/` con pruebas.
 2. Planilla anonimizada → SPEC-004 puntos y reserva por sentido.
 3. SPEC-001 con plantilla completa → simulación de alta/aprobación (T-05).
 4. Demo AllRide (Eduardo) con preguntas de S2b → cerrar V-10 → G2 abreviada (comprar/configurar/construir).
