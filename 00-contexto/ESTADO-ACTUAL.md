@@ -37,8 +37,10 @@ DEC-001 investigación autorizada; DEC-002 secuencia S1→S2→S3→S4→S5; DEC
 - Nuevas tareas: T-11 SPEC-004 reserva por sentido y puntos (depende de la planilla anonimizada, plantilla en `02-descubrimiento/`); T-12 maestro de vehículos con capacidad real por patente y habilitación TTEPRIV.
 - Cifra "24 viajes" sigue sin reconciliar; se revisará con la planilla.
 
+- Contraprueba de SPEC-003: el dueño no pudo abrir el archivo (GitHub muestra el código). El Supervisor ejecutó una contraprueba E2E en Chromium real (12/12, `scripts/e2e-contraprueba.js`, capturas en `08-validacion/capturas-e2e/`) y publicó la app como página privada para que el dueño la recorra desde el navegador. Cómo abrir localmente: descomprimir el zip y hacer doble clic en `09-plataforma/app/index.html`; en GitHub, el botón "Raw" o "Download" descarga el archivo.
+
 ## Prioridad de arranque (próxima sesión)
-1. Contraprueba manual del dueño sobre `app/index.html` con SPEC-003 (contratista solicita 1 y 2 vans; mandante autoriza; vista Contrato).
+1. Recorrido del dueño sobre la app publicada (o el archivo local) y sus observaciones de experiencia.
 2. Planilla de trabajadores **anonimizada** según `02-descubrimiento/LEEME-planilla.md` → SPEC-004 (puntos de bajada y encuentro, reserva por sentido).
 3. Decisiones D1–D4 y D6 de SPEC-001 (basta un "sí" a las opciones sugeridas o corregirlas).
 4. Autorización para demo o contacto con AllRide (cierre total de V-10); PDF fechado de sus páginas.

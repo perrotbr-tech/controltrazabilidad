@@ -57,4 +57,4 @@ Sin cambio: fijo separado del uso; extra con causal, autorización y evidencia; 
 - Pendiente: contraprueba manual del dueño en navegador. **Importante:** por el cambio de clave, la app arranca limpia; si se desea borrar el estado antiguo del prototipo, se usa `app.reset()` en el baseline.
 
 ## 12. Aprobaciones
-Producto/Operación: Eduardo, DEC-008 (2026-09-08). Técnico: revisor-qa sin bloqueantes (2026-09-08). Verificación en navegador: pendiente del dueño.
+Producto/Operación: Eduardo, DEC-008 (2026-09-08). Técnico: revisor-qa sin bloqueantes (2026-09-08). Verificación en navegador: contraprueba E2E en Chromium 12/12 por el Supervisor (`scripts/e2e-contraprueba.js`, capturas en `08-validacion/capturas-e2e/`); la revisión visual del dueño se hace sobre la publicación privada de la app. Estado: **Verificada**.
