@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - cursor/corte1-bugbot-dec033-f681
+      - cursor/mvp-demo-consolidacion-f681
   workflow_dispatch:
 
 permissions:
@@ -46,4 +47,4 @@ jobs:
           force_orphan: true
           user_name: github-actions[bot]
           user_email: github-actions[bot]@users.noreply.github.com
-          commit_message: 'demo: publicar simulación Corte 1 (ficticio, temporal)'
+          commit_message: 'demo: publicar MVP consolidación (ficticio, temporal)'
